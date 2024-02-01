@@ -28,15 +28,18 @@ The features of the planeRF web app include:
   + Toggle display (checkbox) of:
     + $S_E$
     + $S_H$
+    + $S_0$
     + Spatial average value, $S_{E_{sa}}$ for $S_E$ values
-    + Spatial average value, $S_{U_{sa}}$ for $S_H$ values
-    + Power density of the plane wave incident field strength, $S_0$ (checkbox)
-    + Spatial averaging points
-    + Single assessment point with height of that point (validated text input, 0 to 2m)
+    + Spatial average value, $S_{H_{sa}}$ for $S_H$ values
+    + Spatial averaging points on plots
+    + Single assessment point on plots (with validated text inout box for height of that point, 0 to 2m)
 + Calculated levels of $S_E$ and $S_H$ from z = 0 to 2m are displayed in side-by-side plots for TM and TE modes
 + If selected, $S_{sa}$ &/or $S_0$ are displayed as vertical dashed lines
 + The plots will display a legend for the  $S_E$, $S_H$, $S_0$ and $S_{sa}$ curves
-+ A plot showing the model for the TM or TE mode is shown above each plot, with angle of incidence reflecting input value
-+ The $S_{sa_E}$ and $S_{sa_H} values are shown below each plot 
++ The plots will display a grid
++ The vertical plot axis labelled as "z (m)"
++ The horizontal plot axis labelled as "S (W/m²)"
++ A plot/diagram showing the model for the TM or TE mode is shown above each plot, with angle of incidence reflecting input value
++ The $S_{sa_E}$ and $S_{sa_H} values are shown below each TM and TE plot 
     
   
