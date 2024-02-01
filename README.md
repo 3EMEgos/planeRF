@@ -11,8 +11,8 @@ The features of the planeRF web app include:
   + Frequency in MHz (slider input and text box ranging from 1 to 6000 MHz)
   + Spatial averaging length (slider input and text box ranging from 0.1 to 2m in 0.1 increments)
   + Number of spatial averaging points (slider input and text box ranging from 1 to 100 in 1 increments)
-  + Selection of spatial averaging scheme for:
-    + Simple
+  + Selection of [spatial averaging scheme](https://2fc.gitbook.io/spatial-avg-wg/methodology/numerical-approaches-for-spatial-averaging) (combo box) using:
+    + Simple averaging
     + Riemman sum
     + Trapezoidal rule
     + Simpsons 1/3 rule
