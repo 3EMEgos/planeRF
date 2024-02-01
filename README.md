@@ -4,9 +4,10 @@ Python code repository for an interactive web app that calculates and plots $S_E
 The `Dash##` and `Anvil##` folders contain major iterations of Dash and Anvil web apps.
 
 The features of the planeRF web app include:
-+ A side bar with subheadings for:
++ Two display pages:
   + Introduction page
-  + Calculation/plots page 
+  + Calculation/plots page
++ A side bar with subheadings for navigating to these pages  
 + Calculate both $S_E=|E|²/377$ and $S_H=377|H|²$.
 + Calculate for both transverse magnetic (TM) and transverse electric (TE) modes of the incident plane wave.
 + Provide user input for:
