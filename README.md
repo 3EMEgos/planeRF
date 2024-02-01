@@ -11,7 +11,7 @@ The features of the planeRF web app include:
 + Calculate both $S_E=|E|²/377$ and $S_H=377|H|²$
 + Calculate for both transverse magnetic (TM) and transverse electric (TE) modes of the incident plane wave
 + Provide user input for:
-  + Power density (W/m²) of the incident plane wave (validated text input box)
+  + Power density, $S_0$, of the incident plane wave (validated text input box in W/m²)
   + Frequency in MHz (slider input and text box ranging from 1 to 6000 MHz)
   + Spatial averaging length (slider input and text box ranging from 0.1 to 2m in 0.1 increments)
   + Number of spatial averaging points (slider input and text box ranging from 1 to 100 in 1 increments)
