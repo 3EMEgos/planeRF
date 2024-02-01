@@ -40,6 +40,6 @@ The features of the planeRF web app include:
 + The vertical plot axis labelled as "z (m)"
 + The horizontal plot axis labelled as "S (W/m²)"
 + A plot/diagram showing the model for the TM or TE mode is shown above each plot, with angle of incidence reflecting input value
-+ The $S_{sa_E}$ and $S_{sa_H} values are shown below each TM and TE plot 
++ The $S_{E_{sa}}$ and $S_{H_{sa}}$ values are shown below each TM and TE plot 
     
   
