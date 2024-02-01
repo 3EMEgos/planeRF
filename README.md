@@ -28,7 +28,7 @@ The features of the planeRF web app include:
   + Toggle display (checkbox) of:
     + $S_E$
     + $S_H$
-    + Spatial average value, $S_{sa_E}$ for $S_E$ values
+    + Spatial average value, $S_E^{sa}$ for $S_E$ values
     + Spatial average value, $S_{sa_H}$ for $S_H$ values
     + Power density of the plane wave incident field strength, $S_0$ (checkbox)
     + Spatial averaging points
