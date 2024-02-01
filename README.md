@@ -11,10 +11,10 @@ The features of the planeRF web app include:
   + Dielectric values, $\epsilon_r$ and $\sigma$ (S/m), of real ground (validated text input box)
   + Frequency in MHz (slider input and text box ranging from 1 to 6000 MHz)
   + Angle of incidence for plane wave (slider input ranging from 0° to 90°)
-  + Display of the spatial average value (checkbox)
-  + Display of incident field level, $S_0$ (checkbox)
+  + Display of the spatial average value, $S_{sa}$ (checkbox)
+  + Display of power density of the plane wave incident field strength, $S_0$ (checkbox)
 + Calculated levels of $S_E$ and $S_H$ from z = 0 to 2m are displayed in side-by-side plots for TM and TE modes.
-+ Each plot 
++ Each plot shows a vertical dashed line for $S_{sa}$ &/or $S_0$ if selected
 + A figure showing the model for the TM or TE mode is shown above each plot.
     
   
