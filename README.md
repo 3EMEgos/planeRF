@@ -4,6 +4,9 @@ Python code repository for an interactive web app that calculates and plots $S_E
 The `Dash##` and `Anvil##` folders contain major iterations of Dash and Anvil web apps.
 
 The features of the planeRF web app include:
++ A side bar with subheadings for:
+  + Introduction page
+  + Calculation/plots page 
 + Calculate both $S_E=|E|²/377$ and $S_H=377|H|²$.
 + Calculate for both transverse magnetic (TM) and transverse electric (TE) modes of the incident plane wave.
 + Provide user input for:
@@ -27,8 +30,10 @@ The features of the planeRF web app include:
   + Toggle display of power density of the plane wave incident field strength, $S_0$ (checkbox)
   + Toggle display of spatial averaging points (checkbox)
   + Toggle display of single assessment point (checkbox) with height of that point (validated text input, 0 to 2m)
-+ Calculated levels of $S_E$ and $S_H$ from z = 0 to 2m are displayed in side-by-side plots for TM and TE modes.
-+ Each plot shows a vertical dashed line for $S_{sa}$ &/or $S_0$ if selected
-+ A figure showing the model for the TM or TE mode is shown above each plot.
++ Calculated levels of $S_E$ and $S_H$ from z = 0 to 2m are displayed in side-by-side plots for TM and TE modes
++ The plots will display a legend for the  $S_E$, $S_H$, $S_0$ and $S_{sa}$ curves
++ If selected, $S_{sa}$ &/or $S_0$ are displayed as vertical dashed lines
++ A plot showing the model for the TM or TE mode is shown above each plot, with angle of incidence reflecting input value.
++ The value of $S_{sa}$ is shown below each plot for both $S_E$ *and* $S_H$. 
     
   
