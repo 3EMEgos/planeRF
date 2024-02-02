@@ -1,5 +1,5 @@
 # planeRF
-Python code repository for an interactive web app that calculates and plots $S_E$ and $S_H$ of a RF plane wave that is incident at various angles on a PEC or real ground.
+Python code repository for an interactive web app that calculates and plots $S_E$ and $S_H$ over a height of 2m of a RF plane wave that is incident at various angles on a PEC or real ground.
 
 The `Dash##` and `Anvil##` folders contain major iterations of Dash and Anvil web apps.
 
