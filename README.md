@@ -33,6 +33,7 @@ The features of the planeRF web app include:
     + Spatial average value, $S_{E_{sa}}$ for $S_E$ values
     + Spatial average value, $S_{H_{sa}}$ for $S_H$ values
     + Spatial averaging points on plots
+    + Weighting for each spatial averaging point (4 decimal places)
     + Single assessment point on plots (with validated text inout box for height of that point, 0 to 2m)
 + Calculated levels of $S_E$ and $S_H$ from z = 0 to 2m are displayed in side-by-side plots for TM and TE modes
 + If selected, $S_{sa}$ &/or $S_0$ are displayed as vertical dashed lines
