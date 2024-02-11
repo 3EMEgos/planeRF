@@ -25,7 +25,7 @@ The features of the planeRF web app include:
     + Gaussian Legendre quadrature 
   + Selection of PEC or real ground (radio buttons)
   + Dielectric values, $\epsilon_r$ and $\sigma$ (S/m), of real ground (validated text input box)
-  + Angle of incidence for plane wave (slider input and text box ranging from 0° to 90°)
+  + Angle of incidence θ for plane wave (slider input and text box ranging from 0° to 90°)
   + Toggle display (checkbox) of:
     + $S_E$
     + $S_H$
