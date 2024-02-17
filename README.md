@@ -1,7 +1,7 @@
 # planeRF
 Python code repository for an interactive web app that calculates and plots $S_E$ and $S_H$ over a height of 2m of a RF plane wave that is incident at various angles on a PEC or real ground.
 
-The `Dash##` and `Anvil##` folders contain major iterations of Dash and Anvil web apps.
+The `Dash` and `Anvil` folders contain major iterations of Dash and Anvil web apps.
 
 The features of the planeRF web app include:
 + Two display pages:
@@ -10,7 +10,7 @@ The features of the planeRF web app include:
 + A side bar with subheadings for navigating to these pages  
 + Calculate both $S_E=|E|²/377$ and $S_H=377|H|²$
 + Calculate for both transverse magnetic (TM) and transverse electric (TE) modes of the incident plane wave
-![TM & TE mode](https://github.com/3EMEgos/planeRF/blob/main/assets/TM_TE_mode.png "TM & TE mode")
+![TM & TE mode](assets/TM-TE-mode.png "TM & TE mode")
 + Allow user input for:
   + Power density, $S_0$, of the incident plane wave (validated text input box in W/m²)
   + Frequency in MHz (slider input and text box ranging from 1 to 6000 MHz)
