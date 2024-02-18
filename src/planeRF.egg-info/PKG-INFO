@@ -1,0 +1,73 @@
+Metadata-Version: 2.1
+Name: planeRF
+Version: 0.0.1
+Summary: Web app for anaylsis of human exposure to RF EMF
+Author-email: Vitas Anderson <vitas.anderson@gmail.com>, Yong Cai <yong.cai@austrapex.com.au>, Ante Kapetanović <akapet00@gmail.com>
+Project-URL: Code, https://github.com/3EMEgos/planeRF
+Classifier: Development Status :: 4 - Beta
+Classifier: Intended Audience :: Science/Research
+Classifier: Operating System :: OS Independent
+Classifier: Programming Language :: Python
+Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: Python :: 3.7
+Classifier: Programming Language :: Python :: 3.8
+Classifier: Programming Language :: Python :: 3.9
+Classifier: Programming Language :: Python :: 3.10
+Classifier: Programming Language :: Python :: 3.11
+Classifier: Topic :: Scientific/Engineering
+Classifier: Topic :: Utilities
+Requires-Python: >=3.9
+Description-Content-Type: text/markdown
+Requires-Dist: dash==2.14.2
+Requires-Dist: dash-bootstrap-components==1.5.0
+Requires-Dist: numpy==1.25.1
+Requires-Dist: plotly==5.18.0
+
+# planeRF
+Python code repository for an interactive web app that calculates and plots $S_E$ and $S_H$ over a height of 2m of a RF plane wave that is incident at various angles on a PEC or real ground.
+
+The `Dash` and `Anvil` folders contain major iterations of Dash and Anvil web apps.
+
+The features of the planeRF web app include:
++ Two display pages:
+  + Introduction page
+  + Calculation/plots page
++ A side bar with subheadings for navigating to these pages  
++ Calculate both $S_E=|E|²/377$ and $S_H=377|H|²$
++ Calculate for both transverse magnetic (TM) and transverse electric (TE) modes of the incident plane wave
+![TM & TE mode](assets/TM-TE-mode.png "TM & TE mode")
++ Allow user input for:
+  + Power density, $S_0$, of the incident plane wave (validated text input box in W/m²)
+  + Frequency in MHz (slider input and text box ranging from 1 to 6000 MHz)
+  + Spatial averaging length (slider input and text box ranging from 0.1 to 2m in 0.1 increments)
+  + Number of spatial averaging points (slider input and text box ranging from 1 to 100 in 1 increments)
+  + Selection of [spatial averaging scheme](https://2fc.gitbook.io/spatial-avg-wg/methodology/numerical-approaches-for-spatial-averaging) (combo box) using:
+    + Simple averaging
+    + Riemman sum
+    + Trapezoidal rule
+    + Simpsons 1/3 rule
+    + Simpsons 3/8 rule
+    + Gaussian Legendre quadrature 
+  + Selection of PEC or real ground (radio buttons)
+  + Dielectric values, $\epsilon_r$ and $\sigma$ (S/m), of real ground (validated text input box)
+  + Angle of incidence θ for plane wave (slider input and text box ranging from 0° to 90°)
+  + Toggle display (checkbox) of:
+    + $S_E$
+    + $S_H$
+    + $S_0$
+    + Spatial average value $S_{sa_E}$ for $S_E$ values
+    + Spatial average value $S_{sa_H}$ for $S_H$ values
+    + Maximum spatial average value $S_{sa}$ of $S_{sa_E}$ & $S_{sa_H}$
+    + Spatial averaging points on plots
+    + Weighting for each spatial averaging point (4 decimal places)
+    + Single assessment point on plots (with validated text inout box for height of that point, 0 to 2m)
++ Calculated levels of $S_E$ and $S_H$ from z = 0 to 2m are displayed in side-by-side plots for TM and TE modes
++ If selected, $S_0$ $S_{sa}$ $S_{sa_E}$ and $S_{sa_H}$ are displayed as vertical dashed lines
++ The plots will display a legend for the  $S_E$ $S_H$ $S_0$ $S_{sa}$ $S_{sa_E}$ and $S_{sa_H}$ curves
++ The plots will display a grid
++ The vertical plot axis labelled as "z (m)"
++ The horizontal plot axis labelled as "S (W/m²)"
++ A plot/diagram showing the model for the TM or TE mode is shown above each plot, with angle of incidence reflecting input value
++ The $S_{E_{sa}}$ and $S_{H_{sa}}$ values are shown below each TM and TE plot 
+    
+  
