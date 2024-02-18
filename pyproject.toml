@@ -1,0 +1,40 @@
+[build-system]
+requires = ["setuptools", "setuptools-scm"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "planeRF"
+version = "0.0.1"
+authors = [
+    {name = "Vitas Anderson", email = "vitas.anderson@gmail.com"},
+    {name = "Yong Cai", email = "yong.cai@austrapex.com.au"},
+    {name = "Ante Kapetanović", email = "akapet00@gmail.com"}
+]
+description = "Web app for anaylsis of human exposure to RF EMF"
+classifiers = [
+  "Development Status :: 4 - Beta",
+  "Intended Audience :: Science/Research",
+  "Operating System :: OS Independent",
+  "Programming Language :: Python",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.7",
+  "Programming Language :: Python :: 3.8",
+  "Programming Language :: Python :: 3.9",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Topic :: Scientific/Engineering",
+  "Topic :: Utilities",
+]
+readme = "README.md"
+license = {file = "LICENSE"}
+requires-python = ">=3.9"
+dependencies = [
+    "dash == 2.14.2",
+    "dash-bootstrap-components == 1.5.0",
+    "numpy == 1.25.1",
+    "plotly == 5.18.0",
+    "scipy == 1.12.0"
+]
+
+[project.urls]
+Code = "https://github.com/3EMEgos/planeRF"
