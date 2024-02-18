@@ -1,7 +1,7 @@
 # planeRF
-Python code repository for an interactive web app that calculates and plots $S_E$ and $S_H$ over a height of 2m of a RF plane wave that is incident at various angles on a PEC or real ground.
+Python code repository for an interactive web app that calculates and plots $S_E$ and $S_H$ over a height of 2 m of a RF plane wave that is incident at various angles on a PEC or real ground.
 
-The `Dash` and `Anvil` folders contain major iterations of Dash and Anvil web apps.
+The `Dash` directory contains all the code related to the web app, while the main codebase is located within the `src/planeRF` directory.
 
 The features of the planeRF web app include:
 + Two display pages:
@@ -43,6 +43,47 @@ The features of the planeRF web app include:
 + The vertical plot axis labelled as "z (m)"
 + The horizontal plot axis labelled as "S (W/m²)"
 + A plot/diagram showing the model for the TM or TE mode is shown above each plot, with angle of incidence reflecting input value
-+ The $S_{E_{sa}}$ and $S_{H_{sa}}$ values are shown below each TM and TE plot 
-    
-  
++ The $S_{E_{sa}}$ and $S_{H_{sa}}$ values are shown below each TM and TE plot
+
+## Getting started
+
+### Instalation
+
+Clone this repository to your local machine:
+```bash
+git clone git@github.com:3EMEgos/planeRF.git
+```
+Enter the repository:
+```bash
+cd planeRF
+```
+Install `planeRF` preferably within a virtual environment, e.g., by using Conda:
+```bash
+conda create --name pspd python
+pip install --upgrade pip
+python -m pip install -e .
+```
+
+### Use
+
+Run the web app by simply running the `app.py` file inside the `Dash` directory.
+
+If instead you wish to use the code locally without the web app, you can simply do the following:
+```python
+from planeRF import compute_power_density
+
+
+# set up the input values
+f = ...     # replace with your desired frequency in Hz
+theta = 45  # replace with your desired angle in deg
+pol = 'TM'  # define the polarization mode
+
+# perform the computation
+SH, SE = compute_power_density(f, theta, pol)
+```
+
+## Authors
+Vitas Anderson, Yong Cai, Ante Kapetanović
+
+## License
+to-be-added
