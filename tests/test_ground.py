@@ -6,9 +6,9 @@ from planeRF import compute_power_density
 
 def test_compute_power_density():
     # test input values
-    f = 1e9     # replace with your desired frequency
+    f = 1e9  # replace with your desired frequency
     theta = 45  # replace with your desired angle
-    pol = 'TM'
+    pol = "TM"
 
     # perform the computation
     SH, SE = compute_power_density(f, theta, pol)
@@ -21,5 +21,5 @@ def test_compute_power_density():
     # ...
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     pytest.main()
