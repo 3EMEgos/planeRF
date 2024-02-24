@@ -7,7 +7,7 @@ name = "planeRF"
 version = "0.0.1"
 authors = [
     {name = "Vitas Anderson", email = "vitas.anderson@gmail.com"},
-    {name = "Yong Cai", email = "yong.cai@austrapex.com.au"},
+    {name = "Yong Cai", email = "yongcai2020@gmail.com"},
     {name = "Ante Kapetanović", email = "akapet00@gmail.com"}
 ]
 description = "Web app for anaylsis of human exposure to RF EMF"
