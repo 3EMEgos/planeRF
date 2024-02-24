@@ -10,7 +10,7 @@ The features of the planeRF web app include:
 + A side bar with subheadings for navigating to these pages  
 + Calculate both $S_E=|E|²/377$ and $S_H=377|H|²$
 + Calculate for both transverse magnetic (TM) and transverse electric (TE) modes of the incident plane wave
-![TM & TE mode](assets/TM-TE-mode.png "TM & TE mode")
+![TM & TE mode](https://github.com/3EMEgos/planeRF/blob/main/assets/TM-TE-mode.png)
 + Allow user input for:
   + Power density, $S_0$, of the incident plane wave (validated text input box in W/m²)
   + Frequency in MHz (slider input and text box ranging from 1 to 6000 MHz)
@@ -82,8 +82,20 @@ pol = 'TM'  # define the polarization mode
 SH, SE = compute_power_density(f, theta, pol)
 ```
 
+### Run the tests
+
+In the root folder of the project, simply run
+```bash
+pytest tests
+```
+to run all the unit tests.
+
 ## Authors
-Vitas Anderson, Yong Cai, Ante Kapetanović
+Vitas Anderson
+
+Yong Cai
+
+Ante Kapetanović
 
 ## License
-to-be-added
+to-be-defined
