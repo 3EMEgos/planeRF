@@ -1,0 +1,7 @@
+__pycache__/
+*.py[cod]
+*$py.class
+pip-log.txt
+pip-delete-this-directory.txt
+.ipynb_checkpoints
+.egg-info/
