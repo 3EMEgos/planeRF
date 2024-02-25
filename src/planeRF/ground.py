@@ -5,7 +5,7 @@ from scipy.constants import epsilon_0 as eps0, mu_0 as mu0
 __all__ = ["compute_power_density"]
 
 
-def compute_power_density(f, theta, pol):
+def compute_power_density(Ground_type, E0, f, theta, pol):
     """Returns power density for a plane wave traveling through a
     multilayered infinite planar medium where the first and last layers
     have infinite thickness.
@@ -39,13 +39,23 @@ def compute_power_density(f, theta, pol):
     E0 = 100  # E-field of the incident plane wave (V/m, peak)
     z = np.linspace(-2, 0, 2001)  # z-direction coordinates
     zi = [0]  # interface level between layer 1 and 2
-    epsr = [1, 10]  # relative permittivities of layers 1 and 2
+    epsr = [1, 1]  # relative permittivities of layers 1 and 2
     mur = [1, 1]  # relative permeability of layers 1 and 2
-    sigma = [0, 1e6]  # lossless conditions
+    # sigma = [0, 1e6]  # lossless conditions
     zi.append(1e9)  # add a very large z value to act as infinity
     N = len(epsr)  # number of layers
     w = 2.0 * np.pi * f * 1e6  # angular frequency
     theta = np.deg2rad(theta)
+
+    S0 = (0.5*E0**2/Z0) * np.ones(len(z))
+
+    if Ground_type == 'PEC Ground':
+        epsr = [1, 10]
+        sigma =  [0, 1e6]               # PEC Ground, lossless
+    else:
+        epsr = [1, 10]
+        sigma =  [0, 0.1]               # Real Ground
+
 
     # wavenumber
     eps = [er * eps0 + s / (1j * w) for er, s in zip(epsr, sigma)]
@@ -133,4 +143,4 @@ def compute_power_density(f, theta, pol):
         Hz = (1 / Z0) * np.sin(theta) * (Ef + Eb)
         SH = 0.5 * E0**2 * Z0 * (np.abs(Hx) ** 2 + np.abs(Hz) ** 2)
         SE = 0.5 * E0**2 * (1 / Z0) * (np.abs(Ef + Eb)) ** 2
-    return SH, SE
+    return SH, SE, S0

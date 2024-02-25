@@ -16,11 +16,11 @@ SIDEBAR_STYLE = {
 }
 
 # padding for the page content
-CONTENT_STYLE = {
-    "margin-left": "18rem",  # "18rem",
-    "margin-right": "2rem",  # "2rem",
-    "padding": "1rem 1rem",
-}
+# CONTENT_STYLE = {
+#     "margin-left": "18rem",  # "18rem",
+#     "margin-right": "2rem",  # "2rem",
+#     "padding": "1rem 1rem",
+# }
 
 Sidebar = html.Div(
     [
@@ -30,7 +30,7 @@ Sidebar = html.Div(
         dbc.Nav(
             [
                 dbc.NavLink("Home", href="/", active="exact"),
-                dbc.NavLink("Ground Plane Reflection", href="/ground", active="exact"),
+                dbc.NavLink("Ground Reflection", href="/ground", active="exact"),
                 dbc.NavLink("Human Tissue SAR", href="/tissue", active="exact"),
             ],
             vertical=True,
@@ -40,7 +40,7 @@ Sidebar = html.Div(
     style=SIDEBAR_STYLE,
 )
 
-Content = html.Div(id="container", children=[], style=CONTENT_STYLE)
+Content = html.Div(id="container", children=[])
 
 app.layout = html.Div([dcc.Location(id="url"), Sidebar, Content, dash.page_container])
 
