@@ -47,7 +47,7 @@ The features of the planeRF web app include:
 
 ## Getting started
 
-### Instalation
+### Installation
 
 Clone this repository to your local machine:
 ```bash
@@ -59,9 +59,16 @@ cd planeRF
 ```
 Install `planeRF` preferably within a virtual environment, e.g., by using Conda:
 ```bash
-conda create --name pspd python
+conda create --name planeRF python
+conda activate planeRF
 pip install --upgrade pip
 python -m pip install -e .
+```
+If you wish to use the planeRF env in Jupyter or Jupyerlab, run the following commands:
+```bash
+conda activate planeRF
+conda install ipykernel
+ipython kernel install --user --name=planeRF
 ```
 
 ### Use
