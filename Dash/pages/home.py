@@ -31,7 +31,7 @@ card_main1 = dbc.Card(
         ),
     ],
     color="dark",
-    inverse=True,  # change color of text (black or white)
+    inverse=False,  # change color of text (black or white)
     outline=True,  # True = remove the block colors from the background and header
 )
 
@@ -54,14 +54,14 @@ card_main2 = dbc.Card(
         ),
     ],
     color="dark",
-    inverse=True,  # change color of text (black or white)
+    inverse=False,  # change color of text (black or white)
     outline=True,  # True = remove the block colors from the background and header
 )
 
 layout = dbc.Container(
     [
         html.H4(
-            "The three musketeers of online RF dosimetry",
+            "App Introduction",
             style={"textAlign": "center", "margin-bottom": "0px"},
         ),
         html.Hr(),
