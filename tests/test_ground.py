@@ -11,11 +11,12 @@ def test_compute_power_density():
     pol = "TM"
 
     # perform the computation
-    SH, SE = compute_power_density(f, theta, pol)
+    SH, SE, S0 = compute_power_density('PEC Ground', 100, f, theta, pol)
 
     # check the output types
     assert isinstance(SH, np.ndarray)
     assert isinstance(SE, np.ndarray)
+    assert isinstance(S0, np.ndarray)
 
     # do additional checks based on your knowledge of expected values
     # ...
