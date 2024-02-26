@@ -5,19 +5,18 @@ from scipy.constants import epsilon_0 as eps0, mu_0 as mu0
 __all__ = ["compute_power_density"]
 
 
-def compute_power_density(Ground_type, E0, f, theta, pol):
+def compute_power_density(ground_type, E0, f, theta, pol):
     """Returns power density for a plane wave traveling through a
     multilayered infinite planar medium where the first and last layers
     have infinite thickness.
 
-    Note. The algorithm is based on the theory found in Weng Cho Chew,
-    "Waves and Fields in Inhomogeneous Media", IEEE PRESS Series on
-    Electromagnetic Waves. The code was adapted from a Matlab script
-    developed by Kimmo Karkkainen.
-
-
     Parameters
     ----------
+    ground_type : string
+        Type of ground, either 'PEC Ground' or any other string for
+        real ground.
+    E0 : float
+        Electric field magnitude of the incident plane wave (V/m).
     f : float
         Frequency (Hz) of the plane wave.
     theta : float
@@ -31,12 +30,17 @@ def compute_power_density(Ground_type, E0, f, theta, pol):
     Returns
     -------
     tuple
-        Tuple containing the equivalent plane wave power density
-        (SE = 0.5|E|²/Z0) and (SH = 0.5|H|²*Z0) at specified points (z).
+        Containing the equivalent plane wave power density (SH, SE, S0)
+    
+    Notes
+    -----
+    The algorithm is based on the theory found in Weng Cho Chew,
+    'Waves and Fields in Inhomogeneous Media,' IEEE PRESS Series on
+    Electromagnetic Waves. The code was adapted from a Matlab script
+    developed by Kimmo Karkkainen.
     """
     # initialize settings
     Z0 = np.sqrt(mu0 / eps0)  # free-space impedance
-    E0 = 100  # E-field of the incident plane wave (V/m, peak)
     z = np.linspace(-2, 0, 2001)  # z-direction coordinates
     zi = [0]  # interface level between layer 1 and 2
     epsr = [1, 1]  # relative permittivities of layers 1 and 2
@@ -49,13 +53,12 @@ def compute_power_density(Ground_type, E0, f, theta, pol):
 
     S0 = (0.5*E0**2/Z0) * np.ones(len(z))
 
-    if Ground_type == 'PEC Ground':
+    if ground_type == 'PEC Ground':
         epsr = [1, 10]
-        sigma =  [0, 1e6]               # PEC Ground, lossless
+        sigma = [0, 1e6]  # PEC Ground, lossless
     else:
         epsr = [1, 10]
-        sigma =  [0, 0.1]               # Real Ground
-
+        sigma = [0, 0.1]  # Real Ground
 
     # wavenumber
     eps = [er * eps0 + s / (1j * w) for er, s in zip(epsr, sigma)]
