@@ -81,12 +81,14 @@ from planeRF import compute_power_density
 
 
 # set up the input values
+ground_type = 'PEC Ground'  # or 'Real ground'
+E0 = ...    # replace with the desired peak E-field amplitude in V/m
 f = ...     # replace with your desired frequency in Hz
 theta = 45  # replace with your desired angle in deg
 pol = 'TM'  # define the polarization mode
 
 # perform the computation
-SH, SE = compute_power_density(f, theta, pol)
+SH, SE, S0 = compute_power_density(f, theta, pol)
 ```
 
 ### Run the tests
