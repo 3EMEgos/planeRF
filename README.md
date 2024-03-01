@@ -59,7 +59,7 @@ cd planeRF
 ```
 Install `planeRF` preferably within a virtual environment, e.g., by using Conda:
 ```bash
-conda create --name planeRF python=3.11
+conda create --name planeRF python=3.10
 conda activate planeRF
 python -m pip install --upgrade pip
 python -m pip install -e .
