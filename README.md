@@ -67,7 +67,7 @@ python -m pip install -e .
 To use the `planeRF` env in Jupyter or Jupyterlab, run the following commands:
 ```bash
 conda activate planeRF
-conda install ipykernel
+pip install ipykernel
 ipython kernel install --user --name=planeRF
 ```
 
