@@ -61,7 +61,7 @@ Install `planeRF` preferably within a virtual environment, e.g., by using Conda:
 ```bash
 conda create --name planeRF python=3.11
 conda activate planeRF
-python.exe -m pip install --upgrade pip
+python -m pip install --upgrade pip
 python -m pip install -e .
 ```
 To use the `planeRF` env in Jupyter or Jupyterlab, run the following commands:
