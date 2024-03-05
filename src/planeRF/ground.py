@@ -2,10 +2,97 @@ import numpy as np
 from scipy.constants import epsilon_0 as eps0, mu_0 as mu0
 
 
-__all__ = ["compute_power_density"]
+__all__ = ["compute_power_density", "sagnd", "compute_ns"]
 
+def compute_ns(freqMHz:float, L:float):
+    '''
+    INPUTS:
+        kind = spatial averaging scheme ('ps','simple', 'RS', 'S13', 'S38', 'GQR')
+        freqMHz = Frequency in MHz
+        L = Height of Human Body in meters
+    OUTPUTS:
+        ns = number of sampling points/plotting points. Make ns as even number
+        Assume at least 8 points to plot a reasonable smooth curve (sinusoidal curve).
+        The standing wave has twice the frequency than the frequency of interest.
+    '''
 
-def compute_power_density(ground_type, E0, f, theta, pol):
+    # assume at least 8 points to plot a reasonable smooth curve (sinusoidal curve).
+    Ns = max(200, int(np.round((8*L*2)/(300/freqMHz))))
+    if (Ns % 2 == 1):
+        Ns = Ns + 1
+    return Ns
+
+def sagnd(kind:str, n:int, L:float):
+    '''Calculate height (z) and weighting (w) of spatial averaging points
+       for various schemes over ground
+       INPUTS:
+         kind = spatial averaging scheme ('ps','simple', 'RS', 'S13', 'S38', 'GQR')
+         n = number of spatial averaging points
+         L = spatial averaging length, or height of point for 'ps' case
+       OUTPUTS:
+         z = np array of spatial avg assessment point heights (z=0 at ground level)
+         w = np array of assessment point weights
+    '''
+
+    # Assertion tests on input data
+    kinds = ('ps','RS','Simple','S13','S38','GQR')
+    assert kind in kinds, f'kind {kind} must be one of {kinds}'
+    assert 0 < L <= 2, f'L ({L}) must be >0 and ≤2'
+    assert type(n) == int
+    assert 1 <= n <= 640, f'n ({n}) must be ≥1 and ≤640'
+
+    # Select case for spatial averaging scheme
+    match kind:
+        case 'ps':
+            # point spatial
+            z = np.array([float(L)])
+            w = np.array([1.])
+
+        case 'Simple':
+            # Simple average
+            assert (n >= 2), f"n ({n}) must be >= 2"
+            z = np.linspace(0, L, n+1)
+            w = np.ones(n+1)/(n+1)
+
+        case 'RS':
+            # Riemann Sum
+            assert (n >= 2), f"n ({n}) must be >= 2"
+            z = np.linspace(L/(2*n), L-L/(2*n), n)
+            w = np.ones(n) / n
+
+        case 'GQR':
+            # Gaussian Legendre Quadrature Rule
+            z, w = np.polynomial.legendre.leggauss(n)
+            z = (z + 1) * L/2
+            w = w / 2
+
+        case 'S13':
+            # Simpsons 1/3 rule
+            assert (n >= 2), f"n ({n}) must be >= 2" # n denotes the number of intervals
+            assert ((n+1)%2 == 1), f"n ({n}) must be even number" # make sure the number of intervals is even number
+            z = np.linspace(0,L,n+1)
+            w = np.ones(n+1) # initialize the weights with n+1 numbers of 1
+            wts = [4.,2.]*int(n/2)  # create the middle part of the weights wts
+            wts.pop() # drop the last weight of wts
+            w[1:n] = wts[0:n-1] # replace the middle part of the weights
+            # for i in range(n-1):
+            #     w[i+1] = wts[i]
+            w = w * L/(3*n) 
+
+        case 'S38':
+            # Simpsons 3/8 Rule
+            assert (n >= 4), f"n ({n}) must be >= 4"
+            assert ((n-1)%3 == 0), f"number of intervals ({n-1}) must be divisible by 3"
+            z = np.linspace(0,L,n)
+            w = np.ones(n)
+            wts = [3.,3.,2.]*300  # a pop list for the weights
+            for i in range(n-2):
+                w[i+1] = wts.pop(0)
+            w = w / sum(w)
+
+    return z, w
+
+def compute_power_density(ground_type, E0, f, theta, pol, Nt):
     """Returns power density for a plane wave traveling through a
     multilayered infinite planar medium where the first and last layers
     have infinite thickness.
@@ -41,7 +128,7 @@ def compute_power_density(ground_type, E0, f, theta, pol):
     """
     # initialize settings
     Z0 = np.sqrt(mu0 / eps0)  # free-space impedance
-    z = np.linspace(-2, 0, 2001)  # z-direction coordinates
+    z = np.linspace(-2, 0, Nt)  # z-direction coordinates
     zi = [0]  # interface level between layer 1 and 2
     epsr = [1, 1]  # relative permittivities of layers 1 and 2
     mur = [1, 1]  # relative permeability of layers 1 and 2
