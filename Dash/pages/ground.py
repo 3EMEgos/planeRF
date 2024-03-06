@@ -36,34 +36,41 @@ def update_graph_TM(n_clicks, ground_type, sa_method_dpdn, E0, angle, frequency)
 
         if result is not None:
             trace1 = go.Scatter(
-                y=np.linspace(-2, 0, Nt),
-                x=result[0],
+                # y=np.linspace(-2, 0, Nt),
+                # x=result[0],
+                y=np.linspace(0, 2, Nt),
+                x=result[0][Nt:0:-1],
                 mode="lines",
                 line=dict(color="pink", width=1),
                 name="S<sub>H</sub>"
             )
             trace2 = go.Scatter(
-                y=np.linspace(-2, 0, Nt),
-                x=result[1],
+                # y=np.linspace(-2, 0, Nt),
+                # x=result[1],
+                y=np.linspace(0, 2, Nt),
+                x=result[1][Nt:0:-1],
                 mode="lines",
                 line=dict(color="cyan", width=1),
                 name="S<sub>E</sub>"
             )
             trace3 = go.Scatter(
-                y=np.linspace(-2, 0, Nt),
+                # y=np.linspace(-2, 0, Nt),
+                y=np.linspace(0, 2, Nt),
                 x=result[2],
                 line=dict(color="black", width=2, dash="dash"),
                 name=f"S<sub>0</sub>: {round(result[2][0],1):g}",
             )
             trace4 = go.Scatter(
-                y=np.linspace(-2, 0, Ns),
-                x=Ssa_h*np.ones(Ns),
+                # y=np.linspace(-2, 0, Ns),
+                y=np.linspace(0, 2, Nt),
+                x=Ssa_h*np.ones(Nt),
                 line=dict(color="red", width=2, dash="dash"),
                 name=f"S<sub>saH</sub>: {round(Ssa_h,1):g}",
             )
             trace5 = go.Scatter(
-                y=np.linspace(-2, 0, Ns),
-                x=Ssa_e*np.ones(Ns),
+                # y=np.linspace(-2, 0, Ns),
+                y=np.linspace(0, 2, Nt),
+                x=Ssa_e*np.ones(Nt),
                 line=dict(color="blue", width=2, dash="dash"),
                 name=f"S<sub>saE</sub>: {round(Ssa_e,1):g}",
             )
@@ -121,34 +128,41 @@ def update_graph_TE(n_clicks, ground_type, sa_method_dpdn, E0, angle, frequency)
 
         if result is not None:
             trace1 = go.Scatter(
-                y=np.linspace(-2, 0, Nt),
-                x=result[0],
+                # y=np.linspace(-2, 0, Nt),
+                # x=result[0],
+                y=np.linspace(0, 2, Nt),
+                x=result[0][Nt:0:-1],
                 mode="lines",
                 line=dict(color="pink", width=1),
                 name="S<sub>H</sub>"
             )
             trace2 = go.Scatter(
-                y=np.linspace(-2, 0, Nt),
-                x=result[1],
+                # y=np.linspace(-2, 0, Nt),
+                # x=result[1],
+                y=np.linspace(0, 2, Nt),
+                x=result[1][Nt:0:-1],
                 mode="lines",
                 line=dict(color="cyan", width=1),
                 name="S<sub>E</sub>"
             )
             trace3 = go.Scatter(
-                y=np.linspace(-2, 0, Nt),
+                # y=np.linspace(-2, 0, Nt),
+                y=np.linspace(0, 2, Nt),
                 x=result[2],
                 line=dict(color="black", width=2, dash="dash"),
                 name=f"S<sub>0</sub>: {round(result[2][0],1):g}",
             )
             trace4 = go.Scatter(
-                y=np.linspace(-2, 0, Ns),
-                x=Ssa_h*np.ones(Ns),
+                # y=np.linspace(-2, 0, Ns),
+                y=np.linspace(0, 2, Nt),
+                x=Ssa_h*np.ones(Nt),
                 line=dict(color="red", width=2, dash="dash"),
                 name=f"S<sub>saH</sub>: {round(Ssa_h,1):g}",
             )
             trace5 = go.Scatter(
-                y=np.linspace(-2, 0, Ns),
-                x=Ssa_e*np.ones(Ns),
+                # y=np.linspace(-2, 0, Ns),
+                y=np.linspace(0, 2, Nt),
+                x=Ssa_e*np.ones(Nt),
                 line=dict(color="blue", width=2, dash="dash"),
                 name=f"S<sub>saE</sub>: {round(Ssa_e,1):g}",
             )
