@@ -7,7 +7,6 @@ __all__ = ["compute_power_density", "sagnd", "compute_ns"]
 def compute_ns(freqMHz:float, L:float):
     '''
     INPUTS:
-        kind = spatial averaging scheme ('ps','simple', 'RS', 'S13', 'S38', 'GQR')
         freqMHz = Frequency in MHz
         L = Height of Human Body in meters
     OUTPUTS:
@@ -92,7 +91,7 @@ def sagnd(kind:str, n:int, L:float):
 
     return z, w
 
-def compute_power_density(ground_type, E0, f, theta, pol, Nt):
+def compute_power_density(ground_type, S0, f, theta, pol, z):
     """Returns power density for a plane wave traveling through a
     multilayered infinite planar medium where the first and last layers
     have infinite thickness.
@@ -128,7 +127,7 @@ def compute_power_density(ground_type, E0, f, theta, pol, Nt):
     """
     # initialize settings
     Z0 = np.sqrt(mu0 / eps0)  # free-space impedance
-    z = np.linspace(-2, 0, Nt)  # z-direction coordinates
+    
     zi = [0]  # interface level between layer 1 and 2
     epsr = [1, 1]  # relative permittivities of layers 1 and 2
     mur = [1, 1]  # relative permeability of layers 1 and 2
@@ -138,7 +137,7 @@ def compute_power_density(ground_type, E0, f, theta, pol, Nt):
     w = 2.0 * np.pi * f * 1e6  # angular frequency
     theta = np.deg2rad(theta)
 
-    S0 = (0.5*E0**2/Z0) * np.ones(len(z))
+    E0 = np.sqrt(2*S0*Z0)
 
     if ground_type == 'PEC Ground':
         epsr = [1, 10]
@@ -233,4 +232,4 @@ def compute_power_density(ground_type, E0, f, theta, pol, Nt):
         Hz = (1 / Z0) * np.sin(theta) * (Ef + Eb)
         SH = 0.5 * E0**2 * Z0 * (np.abs(Hx) ** 2 + np.abs(Hz) ** 2)
         SE = 0.5 * E0**2 * (1 / Z0) * (np.abs(Ef + Eb)) ** 2
-    return SH, SE, S0
+    return SH, SE

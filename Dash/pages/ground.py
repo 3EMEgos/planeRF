@@ -14,22 +14,23 @@ from planeRF import compute_power_density, sagnd, compute_ns
         Input("Ground_raditem", "value"),
         Input("sa_method_dpdn","value")],
     [
-        State("efield-input", "value"),
+        State("s-input", "value"),
         State("angle-input", "value"),
         State("frequency-input", "value"),
     ],
 )
-def update_graph_TM(n_clicks, ground_type, sa_method_dpdn, E0, angle, frequency):
-    if n_clicks > 0 and E0 is not None and angle is not None and frequency is not None:
+def update_graph_TM(n_clicks, ground_type, sa_method_dpdn, S0, angle, frequency):
+    if n_clicks > 0 and S0 is not None and angle is not None and frequency is not None:
         L = 2.0
         ground_type = str(ground_type)
         sa_method_dpdn = str(sa_method_dpdn)
-        E0 = float(E0)
+        S0 = float(S0)
         angle = float(angle)
         frequency = float(frequency)
         Ns = compute_ns(frequency,L)
         Nt = Ns + 1
-        result = compute_power_density(ground_type, E0, frequency, angle, "TM", Nt)
+        z = np.linspace(-2, 0, Nt)  # z-direction coordinates
+        result = compute_power_density(ground_type, S0, frequency, angle, "TM", z)
         Zs, Ws = sagnd(sa_method_dpdn, Ns, L)
         Ssa_h = np.dot(result[0][0:Nt:1], Ws)/L
         Ssa_e = np.dot(result[1][0:Nt:1], Ws)/L
@@ -56,9 +57,9 @@ def update_graph_TM(n_clicks, ground_type, sa_method_dpdn, E0, angle, frequency)
             trace3 = go.Scatter(
                 # y=np.linspace(-2, 0, Nt),
                 y=np.linspace(0, 2, Nt),
-                x=result[2],
+                x=S0*np.ones(len(z)),
                 line=dict(color="black", width=2, dash="dash"),
-                name=f"S<sub>0</sub>: {round(result[2][0],1):g}",
+                name=f"S<sub>0</sub>: {round(S0,1):g}",
             )
             trace4 = go.Scatter(
                 # y=np.linspace(-2, 0, Ns),
@@ -96,7 +97,7 @@ def update_graph_TM(n_clicks, ground_type, sa_method_dpdn, E0, angle, frequency)
             fig.add_trace(trace4)
             fig.add_trace(trace5)
             return fig
-    elif E0 is None or angle is None or frequency is None:
+    elif S0 is None or angle is None or frequency is None:
         raise dash.exceptions.PreventUpdate
 
 
@@ -106,22 +107,23 @@ def update_graph_TM(n_clicks, ground_type, sa_method_dpdn, E0, angle, frequency)
         Input("Ground_raditem", "value"),
         Input("sa_method_dpdn","value")],
     [
-        State("efield-input", "value"),
+        State("s-input", "value"),
         State("angle-input", "value"),
         State("frequency-input", "value"),
     ],
 )
-def update_graph_TE(n_clicks, ground_type, sa_method_dpdn, E0, angle, frequency):
-    if n_clicks > 0 and E0 is not None and angle is not None and frequency is not None:
+def update_graph_TE(n_clicks, ground_type, sa_method_dpdn, S0, angle, frequency):
+    if n_clicks > 0 and S0 is not None and angle is not None and frequency is not None:
         L = 2.0
         ground_type = str(ground_type)
         sa_method_dpdn = str(sa_method_dpdn)
-        E0 = float(E0)
+        S0 = float(S0)
         angle = float(angle)
         frequency = float(frequency)
         Ns = compute_ns(frequency,L)
         Nt = Ns + 1
-        result = compute_power_density(ground_type, E0, frequency, angle, "TE", Nt)
+        z = np.linspace(-2, 0, Nt)  # z-direction coordinates
+        result = compute_power_density(ground_type, S0, frequency, angle, "TE", z)
         Zs, Ws = sagnd(sa_method_dpdn, Ns, L)
         Ssa_h = np.dot(result[0][0:Nt:1], Ws)/L
         Ssa_e = np.dot(result[1][0:Nt:1], Ws)/L
@@ -148,9 +150,9 @@ def update_graph_TE(n_clicks, ground_type, sa_method_dpdn, E0, angle, frequency)
             trace3 = go.Scatter(
                 # y=np.linspace(-2, 0, Nt),
                 y=np.linspace(0, 2, Nt),
-                x=result[2],
+                x=S0*np.ones(len(z)),
                 line=dict(color="black", width=2, dash="dash"),
-                name=f"S<sub>0</sub>: {round(result[2][0],1):g}",
+                name=f"S<sub>0</sub>: {round(S0,1):g}",
             )
             trace4 = go.Scatter(
                 # y=np.linspace(-2, 0, Ns),
@@ -187,7 +189,7 @@ def update_graph_TE(n_clicks, ground_type, sa_method_dpdn, E0, angle, frequency)
             fig.add_trace(trace4)
             fig.add_trace(trace5)
             return fig
-    elif E0 is None or angle is None or frequency is None:
+    elif S0 is None or angle is None or frequency is None:
         raise dash.exceptions.PreventUpdate
 
 
@@ -230,11 +232,11 @@ Layout_Ground = html.Div(
                         ),
                         html.Br(),
                         html.H6(
-                            ["Incident e-field Strengh (V/m)"],
+                            ["Incident Power Flux Density (W/m", html.Sup("2"), ")"],
                             style={"color": "Teal", "font-weight": "bold"},
                         ),
                         dcc.Input(
-                            id="efield-input",
+                            id="s-input",
                             type="number",
                             placeholder="",
                             min=0.1,
