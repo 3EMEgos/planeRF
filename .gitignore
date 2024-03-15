@@ -4,5 +4,5 @@ __pycache__/
 pip-log.txt
 pip-delete-this-directory.txt
 .ipynb_checkpoints
-.egg-info/
+*.egg-info/
 Dash/venv/
