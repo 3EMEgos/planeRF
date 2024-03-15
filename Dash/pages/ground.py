@@ -10,9 +10,11 @@ from planeRF import compute_power_density, sagnd, compute_ns
 
 @callback(
     Output(component_id="output-graphTM", component_property="figure"),
-    [   Input("run-button", "n_clicks"),
+    [
+        Input("run-button", "n_clicks"),
         Input("Ground_raditem", "value"),
-        Input("sa_method_dpdn","value")],
+        Input("sa_method_dpdn", "value"),
+    ],
     [
         State("s-input", "value"),
         State("angle-input", "value"),
@@ -27,13 +29,13 @@ def update_graph_TM(n_clicks, ground_type, sa_method_dpdn, S0, angle, frequency)
         S0 = float(S0)
         angle = float(angle)
         frequency = float(frequency)
-        Ns = compute_ns(frequency,L)
+        Ns = compute_ns(frequency, L)
         Nt = Ns + 1
         z = np.linspace(-2, 0, Nt)  # z-direction coordinates
         result = compute_power_density(ground_type, S0, frequency, angle, "TM", z)
         Zs, Ws = sagnd(sa_method_dpdn, Ns, L)
-        Ssa_h = np.dot(result[0][0:Nt:1], Ws)/L
-        Ssa_e = np.dot(result[1][0:Nt:1], Ws)/L
+        Ssa_h = np.dot(result[0][0:Nt:1], Ws) / L
+        Ssa_e = np.dot(result[1][0:Nt:1], Ws) / L
 
         if result is not None:
             trace1 = go.Scatter(
@@ -43,7 +45,7 @@ def update_graph_TM(n_clicks, ground_type, sa_method_dpdn, S0, angle, frequency)
                 x=result[0][Nt:0:-1],
                 mode="lines",
                 line=dict(color="pink", width=1),
-                name="S<sub>H</sub>"
+                name="S<sub>H</sub>",
             )
             trace2 = go.Scatter(
                 # y=np.linspace(-2, 0, Nt),
@@ -52,41 +54,41 @@ def update_graph_TM(n_clicks, ground_type, sa_method_dpdn, S0, angle, frequency)
                 x=result[1][Nt:0:-1],
                 mode="lines",
                 line=dict(color="cyan", width=1),
-                name="S<sub>E</sub>"
+                name="S<sub>E</sub>",
             )
             trace3 = go.Scatter(
                 # y=np.linspace(-2, 0, Nt),
                 y=np.linspace(0, 2, Nt),
-                x=S0*np.ones(len(z)),
+                x=S0 * np.ones(len(z)),
                 line=dict(color="black", width=2, dash="dash"),
                 name=f"S<sub>0</sub>: {round(S0,1):g}",
             )
             trace4 = go.Scatter(
                 # y=np.linspace(-2, 0, Ns),
                 y=np.linspace(0, 2, Nt),
-                x=Ssa_h*np.ones(Nt),
+                x=Ssa_h * np.ones(Nt),
                 line=dict(color="red", width=2, dash="dash"),
                 name=f"S<sub>saH</sub>: {round(Ssa_h,1):g}",
             )
             trace5 = go.Scatter(
                 # y=np.linspace(-2, 0, Ns),
                 y=np.linspace(0, 2, Nt),
-                x=Ssa_e*np.ones(Nt),
+                x=Ssa_e * np.ones(Nt),
                 line=dict(color="blue", width=2, dash="dash"),
                 name=f"S<sub>saE</sub>: {round(Ssa_e,1):g}",
             )
 
             layout = go.Layout(
                 title=f"TM mode, {frequency:g} MHz, theta = {angle:g}°",
-                xaxis={'showgrid': False,
-                       'gridcolor':'black',
-                       'title': "Power Flux Density (W/m<sup>2</sup>)"},
-                yaxis={'showgrid': False,
-                       'gridcolor':'black',
-                       'title': "z(m)"},
-                plot_bgcolor='#fff',
+                xaxis={
+                    "showgrid": False,
+                    "gridcolor": "black",
+                    "title": "Power Flux Density (W/m<sup>2</sup>)",
+                },
+                yaxis={"showgrid": False, "gridcolor": "black", "title": "z(m)"},
+                plot_bgcolor="#fff",
                 width=360,
-                height=900
+                height=900,
             )
 
             # fig = go.Figure(data=[trace], layout=layout)
@@ -103,9 +105,11 @@ def update_graph_TM(n_clicks, ground_type, sa_method_dpdn, S0, angle, frequency)
 
 @callback(
     Output(component_id="output-graphTE", component_property="figure"),
-    [   Input("run-button", "n_clicks"),
+    [
+        Input("run-button", "n_clicks"),
         Input("Ground_raditem", "value"),
-        Input("sa_method_dpdn","value")],
+        Input("sa_method_dpdn", "value"),
+    ],
     [
         State("s-input", "value"),
         State("angle-input", "value"),
@@ -120,13 +124,13 @@ def update_graph_TE(n_clicks, ground_type, sa_method_dpdn, S0, angle, frequency)
         S0 = float(S0)
         angle = float(angle)
         frequency = float(frequency)
-        Ns = compute_ns(frequency,L)
+        Ns = compute_ns(frequency, L)
         Nt = Ns + 1
         z = np.linspace(-2, 0, Nt)  # z-direction coordinates
         result = compute_power_density(ground_type, S0, frequency, angle, "TE", z)
         Zs, Ws = sagnd(sa_method_dpdn, Ns, L)
-        Ssa_h = np.dot(result[0][0:Nt:1], Ws)/L
-        Ssa_e = np.dot(result[1][0:Nt:1], Ws)/L
+        Ssa_h = np.dot(result[0][0:Nt:1], Ws) / L
+        Ssa_e = np.dot(result[1][0:Nt:1], Ws) / L
 
         if result is not None:
             trace1 = go.Scatter(
@@ -136,7 +140,7 @@ def update_graph_TE(n_clicks, ground_type, sa_method_dpdn, S0, angle, frequency)
                 x=result[0][Nt:0:-1],
                 mode="lines",
                 line=dict(color="pink", width=1),
-                name="S<sub>H</sub>"
+                name="S<sub>H</sub>",
             )
             trace2 = go.Scatter(
                 # y=np.linspace(-2, 0, Nt),
@@ -145,41 +149,41 @@ def update_graph_TE(n_clicks, ground_type, sa_method_dpdn, S0, angle, frequency)
                 x=result[1][Nt:0:-1],
                 mode="lines",
                 line=dict(color="cyan", width=1),
-                name="S<sub>E</sub>"
+                name="S<sub>E</sub>",
             )
             trace3 = go.Scatter(
                 # y=np.linspace(-2, 0, Nt),
                 y=np.linspace(0, 2, Nt),
-                x=S0*np.ones(len(z)),
+                x=S0 * np.ones(len(z)),
                 line=dict(color="black", width=2, dash="dash"),
                 name=f"S<sub>0</sub>: {round(S0,1):g}",
             )
             trace4 = go.Scatter(
                 # y=np.linspace(-2, 0, Ns),
                 y=np.linspace(0, 2, Nt),
-                x=Ssa_h*np.ones(Nt),
+                x=Ssa_h * np.ones(Nt),
                 line=dict(color="red", width=2, dash="dash"),
                 name=f"S<sub>saH</sub>: {round(Ssa_h,1):g}",
             )
             trace5 = go.Scatter(
                 # y=np.linspace(-2, 0, Ns),
                 y=np.linspace(0, 2, Nt),
-                x=Ssa_e*np.ones(Nt),
+                x=Ssa_e * np.ones(Nt),
                 line=dict(color="blue", width=2, dash="dash"),
                 name=f"S<sub>saE</sub>: {round(Ssa_e,1):g}",
             )
 
             layout = go.Layout(
                 title=f"TE mode, {frequency:g} MHz, theta = {angle:g}°",
-                xaxis={'showgrid': False, 
-                       'gridcolor':'black', 
-                       'title': "Power Flux Density (W/m<sup>2</sup>)"},
-                yaxis={'showgrid': False, 
-                       'gridcolor':'black', 
-                       'title':"z(m)"},
-                plot_bgcolor='#fff',
+                xaxis={
+                    "showgrid": False,
+                    "gridcolor": "black",
+                    "title": "Power Flux Density (W/m<sup>2</sup>)",
+                },
+                yaxis={"showgrid": False, "gridcolor": "black", "title": "z(m)"},
+                plot_bgcolor="#fff",
                 width=360,
-                height=900
+                height=900,
             )
             # fig = go.Figure(data=[trace], layout=layout)
             fig = go.Figure(layout=layout)
@@ -277,24 +281,30 @@ Layout_Ground = html.Div(
                             "Spatial Average Methods",
                             style={"color": "Teal", "font-weight": "bold"},
                         ),
-                        dcc.Dropdown(id='sa_method_dpdn',
-                            options=[{'label': "Simple Spatial Averaging", 'value': "Simple"},
-                                    {'label': "Simpson's 1/3 Rule", 'value': "S13"}],
-                            
-                            optionHeight=35,                    #height/space between dropdown options
-                            value = "S13",                      #dropdown value selected automatically when page loads
-                            disabled=False,                     #disable dropdown value selection
-                            multi=False,                        #allow multiple dropdown values to be selected
-                            searchable=True,                    #allow user-searching of dropdown values
-                            search_value='',                    #remembers the value searched in dropdown
-                            placeholder='Please select...',     #gray, default text shown when no option is selected
-                            clearable=False,                    #allow user to removes the selected value
-                            style={'width':"70%"},              #use dictionary to define CSS styles of your dropdown
+                        dcc.Dropdown(
+                            id="sa_method_dpdn",
+                            options=[
+                                {
+                                    "label": "Simple Spatial Averaging",
+                                    "value": "Simple",
+                                },
+                                {"label": "Simpson's 1/3 Rule", "value": "S13"},
+                            ],
+                            optionHeight=35,  # height/space between dropdown options
+                            value="S13",  # dropdown value selected automatically when page loads
+                            disabled=False,  # disable dropdown value selection
+                            multi=False,  # allow multiple dropdown values to be selected
+                            searchable=True,  # allow user-searching of dropdown values
+                            search_value="",  # remembers the value searched in dropdown
+                            placeholder="Please select...",  # gray, default text shown when no option is selected
+                            clearable=False,  # allow user to removes the selected value
+                            style={
+                                "width": "70%"
+                            },  # use dictionary to define CSS styles of your dropdown
                             # className='select_box',           #activate separate CSS document in assets folder
                             # persistence=True,                 #remembers dropdown value. Used with persistence_type
                             # persistence_type='memory'         #remembers dropdown value selected until...
-                            ),
-
+                        ),
                         html.Br(),
                         html.Br(),
                         html.Br(),
