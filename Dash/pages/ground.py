@@ -201,7 +201,7 @@ dash.register_page(
     __name__,
     path="/ground",
     title="Ground Reflection",
-    name="Ground Plane Reflection",
+    name="Ground Reflection",
 )
 
 # dash.page_container.style = {
@@ -229,7 +229,8 @@ Layout_Ground = html.Div(
                             id="Ground_raditem",
                             options=[
                                 {"label": "PEC Ground", "value": "PEC Ground"},
-                                {"label": "Real Ground", "value": "Real Ground"},
+                                {"label": "Wet Soil", "value": "Wet Soil"},
+                                {"label": "Dry Soil", "value": "Dry Soil"},
                             ],
                             value="PEC Ground",
                             inline=False,

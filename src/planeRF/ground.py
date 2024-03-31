@@ -1,8 +1,67 @@
 import numpy as np
+import pandas as pd
 from scipy.constants import epsilon_0 as eps0, mu_0 as mu0
 
 
-__all__ = ["compute_power_density", "sagnd", "compute_ns"]
+__all__ = ["compute_power_density", "sagnd", "compute_ns","permittivity"]
+
+
+def permittivity(ground_type, freqMHz:float):
+
+    '''
+    INPUTS:
+        ground_type: PEC Ground, Wet Soil, Dry Soil
+        freqMHz: Frequency in MHz
+        P_Sand, P_Clay, P_Silt, Pb, Ps, mv Parameters from ITU-R P.527-6 Fig.14 and Fig.16
+        T = 23 Celsius
+        mv = 0.5 for wet soil; mv = 0.07 for dry soil
+    OUTPUTS:
+        ε_r, sigma (ε_i)
+    '''
+    df_soil = pd.read_csv('./Dash/assets/soil.csv')
+    P_Sand = df_soil[df_soil['Type'] == ground_type]['Sand'].iloc[0]
+    P_Clay = df_soil[df_soil['Type'] == ground_type]['Clay'].iloc[0]
+    P_Silt = df_soil[df_soil['Type'] == ground_type]['Silt'].iloc[0]
+    Ps = df_soil[df_soil['Type'] == ground_type]['Ps'].iloc[0]
+    Pb = df_soil[df_soil['Type'] == ground_type]['Pb'].iloc[0]
+    T = df_soil[df_soil['Type'] == ground_type]['T'].iloc[0]
+    mv = df_soil[df_soil['Type'] == ground_type]['mv'].iloc[0]
+
+    fGHz = freqMHz/1000
+
+    σ1 = 0.0467 + 0.2204 * Pb - 0.004111 * P_Sand - 0.006614 * P_Clay   #eq(69)
+    σ2 = -1.645 + 1.939 * Pb - 0.0225622 * P_Sand + 0.01594 * P_Clay    #eq(70)
+
+    σeff_r = (fGHz/1.35) * ((σ1-σ2)/(1+(fGHz/1.35)**2))                 #eq(67)
+    σeff_i =  σ2 + ((σ1-σ2)/(1+(fGHz/1.35)**2))                         #eq(68)
+
+    Θ = 300/(T + 273.15) - 1                                            #eq(11)
+    εs = 77.66 + 103.3 * Θ                                              #eq(8)
+    ε1 = 0.0671 * εs                                                    #eq(9)
+    εinf = 3.52 -7.52 * Θ                                               #eq(10)
+
+    f1 = 20.20 - 146.4 * Θ + 316 * Θ**2                                 #eq(12)
+    f2 = 39.8 * f1                                                      #eq(13)
+
+    # εfw_r and εfw_i are the real and the imaginary parts of the complex relative permittivity of free water
+
+    εfw_r = (εs-ε1)/(1 + (fGHz/f1)**2) + (ε1-εinf)/(1 + (fGHz/f2)**2) \
+        + εinf + (18 * σeff_r/fGHz) * ((Ps - Pb)/(Ps*mv))               #eq(65)
+    
+    εfw_i = (fGHz/f1)*(εs-ε1)/(1 + (fGHz/f1)**2) \
+        + (fGHz/f2)*(ε1-εinf)/(1 + (fGHz/f2)**2) \
+        + (18 * σeff_i/fGHz) * ((Ps - Pb)/(Ps*mv))                      #eq(66)  
+    
+    εsm_r = (1.01 + 0.44*Ps)**2 - 0.062                                 #eq(61)
+    β_r = 1.2748 - 0.00519 * P_Sand - 0.00152 * P_Clay                  #eq(62)  
+    β_i = 1.33797 - 0.00603 * P_Sand - 0.00166 * P_Clay                 #eq(63)
+    α = 0.65                                                            #eq(64)
+
+    ε_r = (1 + (Pb/Ps)*(εsm_r**α - 1) + (mv**β_r)*(εfw_r**α) - mv) ** (1/α)
+    ε_i = ((mv**β_i)*(εfw_i**α)) ** (1/α)
+    sigma = 0.05563 * fGHz * ε_i                                        #eq(3a)
+
+    return ε_r, sigma
 
 def compute_ns(freqMHz:float, L:float):
     '''
@@ -11,11 +70,10 @@ def compute_ns(freqMHz:float, L:float):
         L = Height of Human Body in meters
     OUTPUTS:
         ns = number of sampling points/plotting points. Make ns as even number
-        Assume at least 8 points to plot a reasonable smooth curve (sinusoidal curve).
+        Assume at least 8 points to plot a reasonable smooth curve.
         The standing wave has twice the frequency than the frequency of interest.
     '''
 
-    # assume at least 8 points to plot a reasonable smooth curve (sinusoidal curve).
     Ns = max(200, int(np.round((8*L*2)/(300/freqMHz))))
     if (Ns % 2 == 1):
         Ns = Ns + 1
@@ -91,7 +149,7 @@ def sagnd(kind:str, n:int, L:float):
 
     return z, w
 
-def compute_power_density(ground_type, S0, f, theta, pol, z):
+def compute_power_density(ground_type, S0, freqMHz, theta, pol, z):
     """Returns power density for a plane wave traveling through a
     multilayered infinite planar medium where the first and last layers
     have infinite thickness.
@@ -104,7 +162,7 @@ def compute_power_density(ground_type, S0, f, theta, pol, z):
     E0 : float
         Electric field magnitude of the incident plane wave (V/m).
     f : float
-        Frequency (Hz) of the plane wave.
+        Frequency of the plane wave in MHz.
     theta : float
         Incoming angle of the propagation vector (k) relative to the
         normal of the first interface.
@@ -134,7 +192,7 @@ def compute_power_density(ground_type, S0, f, theta, pol, z):
     # sigma = [0, 1e6]  # lossless conditions
     zi.append(1e9)  # add a very large z value to act as infinity
     N = len(epsr)  # number of layers
-    w = 2.0 * np.pi * f * 1e6  # angular frequency
+    w = 2.0 * np.pi * freqMHz * 1e6  # angular frequency
     theta = np.deg2rad(theta)
 
     E0 = np.sqrt(2*S0*Z0)
@@ -142,9 +200,16 @@ def compute_power_density(ground_type, S0, f, theta, pol, z):
     if ground_type == 'PEC Ground':
         epsr = [1, 10]
         sigma = [0, 1e6]  # PEC Ground, lossless
+    elif ground_type == 'Wet Soil':
+        er, sigma_i = permittivity(ground_type,freqMHz)
+        epsr = [1, er]
+        sigma = [0, sigma_i]  # wet soil
+    elif ground_type == 'Dry Soil':
+        er, sigma_i = permittivity(ground_type,freqMHz)
+        epsr = [1, er]
+        sigma = [0, sigma_i]  # Dry soil
     else:
-        epsr = [1, 10]
-        sigma = [0, 0.1]  # Real Ground
+        raise Exception(f"ground ({ground_type}) must be PEC Ground, Wet Soil or Dry Soil")
 
     # wavenumber
     eps = [er * eps0 + s / (1j * w) for er, s in zip(epsr, sigma)]
