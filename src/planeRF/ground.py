@@ -3,12 +3,11 @@ import pandas as pd
 from scipy.constants import epsilon_0 as eps0, mu_0 as mu0
 
 
-__all__ = ["compute_power_density", "sagnd", "compute_ns","permittivity"]
+__all__ = ["compute_power_density", "sagnd", "compute_ns", "permittivity"]
 
 
-def permittivity(ground_type, freqMHz:float):
-
-    '''
+def permittivity(ground_type, freqMHz: float):
+    """
     INPUTS:
         ground_type: PEC Ground, Wet Soil, Dry Soil
         freqMHz: Frequency in MHz
@@ -17,54 +16,61 @@ def permittivity(ground_type, freqMHz:float):
         mv = 0.5 for wet soil; mv = 0.07 for dry soil
     OUTPUTS:
         ε_r, sigma (ε_i)
-    '''
-    df_soil = pd.read_csv('./Dash/assets/soil.csv')
-    P_Sand = df_soil[df_soil['Type'] == ground_type]['Sand'].iloc[0]
-    P_Clay = df_soil[df_soil['Type'] == ground_type]['Clay'].iloc[0]
-    P_Silt = df_soil[df_soil['Type'] == ground_type]['Silt'].iloc[0]
-    Ps = df_soil[df_soil['Type'] == ground_type]['Ps'].iloc[0]
-    Pb = df_soil[df_soil['Type'] == ground_type]['Pb'].iloc[0]
-    T = df_soil[df_soil['Type'] == ground_type]['T'].iloc[0]
-    mv = df_soil[df_soil['Type'] == ground_type]['mv'].iloc[0]
+    """
+    df_soil = pd.read_csv("./Dash/assets/soil.csv")
+    P_Sand = df_soil[df_soil["Type"] == ground_type]["Sand"].iloc[0]
+    P_Clay = df_soil[df_soil["Type"] == ground_type]["Clay"].iloc[0]
+    P_Silt = df_soil[df_soil["Type"] == ground_type]["Silt"].iloc[0]
+    Ps = df_soil[df_soil["Type"] == ground_type]["Ps"].iloc[0]
+    Pb = df_soil[df_soil["Type"] == ground_type]["Pb"].iloc[0]
+    T = df_soil[df_soil["Type"] == ground_type]["T"].iloc[0]
+    mv = df_soil[df_soil["Type"] == ground_type]["mv"].iloc[0]
 
-    fGHz = freqMHz/1000
+    fGHz = freqMHz / 1000
 
-    σ1 = 0.0467 + 0.2204 * Pb - 0.004111 * P_Sand - 0.006614 * P_Clay   #eq(69)
-    σ2 = -1.645 + 1.939 * Pb - 0.0225622 * P_Sand + 0.01594 * P_Clay    #eq(70)
+    σ1 = 0.0467 + 0.2204 * Pb - 0.004111 * P_Sand - 0.006614 * P_Clay  # eq(69)
+    σ2 = -1.645 + 1.939 * Pb - 0.0225622 * P_Sand + 0.01594 * P_Clay  # eq(70)
 
-    σeff_r = (fGHz/1.35) * ((σ1-σ2)/(1+(fGHz/1.35)**2))                 #eq(67)
-    σeff_i =  σ2 + ((σ1-σ2)/(1+(fGHz/1.35)**2))                         #eq(68)
+    σeff_r = (fGHz / 1.35) * ((σ1 - σ2) / (1 + (fGHz / 1.35) ** 2))  # eq(67)
+    σeff_i = σ2 + ((σ1 - σ2) / (1 + (fGHz / 1.35) ** 2))  # eq(68)
 
-    Θ = 300/(T + 273.15) - 1                                            #eq(11)
-    εs = 77.66 + 103.3 * Θ                                              #eq(8)
-    ε1 = 0.0671 * εs                                                    #eq(9)
-    εinf = 3.52 -7.52 * Θ                                               #eq(10)
+    Θ = 300 / (T + 273.15) - 1  # eq(11)
+    εs = 77.66 + 103.3 * Θ  # eq(8)
+    ε1 = 0.0671 * εs  # eq(9)
+    εinf = 3.52 - 7.52 * Θ  # eq(10)
 
-    f1 = 20.20 - 146.4 * Θ + 316 * Θ**2                                 #eq(12)
-    f2 = 39.8 * f1                                                      #eq(13)
+    f1 = 20.20 - 146.4 * Θ + 316 * Θ**2  # eq(12)
+    f2 = 39.8 * f1  # eq(13)
 
     # εfw_r and εfw_i are the real and the imaginary parts of the complex relative permittivity of free water
 
-    εfw_r = (εs-ε1)/(1 + (fGHz/f1)**2) + (ε1-εinf)/(1 + (fGHz/f2)**2) \
-        + εinf + (18 * σeff_r/fGHz) * ((Ps - Pb)/(Ps*mv))               #eq(65)
-    
-    εfw_i = (fGHz/f1)*(εs-ε1)/(1 + (fGHz/f1)**2) \
-        + (fGHz/f2)*(ε1-εinf)/(1 + (fGHz/f2)**2) \
-        + (18 * σeff_i/fGHz) * ((Ps - Pb)/(Ps*mv))                      #eq(66)  
-    
-    εsm_r = (1.01 + 0.44*Ps)**2 - 0.062                                 #eq(61)
-    β_r = 1.2748 - 0.00519 * P_Sand - 0.00152 * P_Clay                  #eq(62)  
-    β_i = 1.33797 - 0.00603 * P_Sand - 0.00166 * P_Clay                 #eq(63)
-    α = 0.65                                                            #eq(64)
+    εfw_r = (
+        (εs - ε1) / (1 + (fGHz / f1) ** 2)
+        + (ε1 - εinf) / (1 + (fGHz / f2) ** 2)
+        + εinf
+        + (18 * σeff_r / fGHz) * ((Ps - Pb) / (Ps * mv))
+    )  # eq(65)
 
-    ε_r = (1 + (Pb/Ps)*(εsm_r**α - 1) + (mv**β_r)*(εfw_r**α) - mv) ** (1/α)
-    ε_i = ((mv**β_i)*(εfw_i**α)) ** (1/α)
-    sigma = 0.05563 * fGHz * ε_i                                        #eq(3a)
+    εfw_i = (
+        (fGHz / f1) * (εs - ε1) / (1 + (fGHz / f1) ** 2)
+        + (fGHz / f2) * (ε1 - εinf) / (1 + (fGHz / f2) ** 2)
+        + (18 * σeff_i / fGHz) * ((Ps - Pb) / (Ps * mv))
+    )  # eq(66)
+
+    εsm_r = (1.01 + 0.44 * Ps) ** 2 - 0.062  # eq(61)
+    β_r = 1.2748 - 0.00519 * P_Sand - 0.00152 * P_Clay  # eq(62)
+    β_i = 1.33797 - 0.00603 * P_Sand - 0.00166 * P_Clay  # eq(63)
+    α = 0.65  # eq(64)
+
+    ε_r = (1 + (Pb / Ps) * (εsm_r**α - 1) + (mv**β_r) * (εfw_r**α) - mv) ** (1 / α)
+    ε_i = ((mv**β_i) * (εfw_i**α)) ** (1 / α)
+    sigma = 0.05563 * fGHz * ε_i  # eq(3a)
 
     return ε_r, sigma
 
-def compute_ns(freqMHz:float, L:float):
-    '''
+
+def compute_ns(freqMHz: float, L: float):
+    """
     INPUTS:
         freqMHz = Frequency in MHz
         L = Height of Human Body in meters
@@ -72,82 +78,88 @@ def compute_ns(freqMHz:float, L:float):
         ns = number of sampling points/plotting points. Make ns as even number
         Assume at least 8 points to plot a reasonable smooth curve.
         The standing wave has twice the frequency than the frequency of interest.
-    '''
+    """
 
-    Ns = max(200, int(np.round((8*L*2)/(300/freqMHz))))
-    if (Ns % 2 == 1):
+    Ns = max(200, int(np.round((8 * L * 2) / (300 / freqMHz))))
+    if Ns % 2 == 1:
         Ns = Ns + 1
     return Ns
 
-def sagnd(kind:str, n:int, L:float):
-    '''Calculate height (z) and weighting (w) of spatial averaging points
-       for various schemes over ground
-       INPUTS:
-         kind = spatial averaging scheme ('ps','simple', 'RS', 'S13', 'S38', 'GQR')
-         n = number of spatial averaging points
-         L = spatial averaging length, or height of point for 'ps' case
-       OUTPUTS:
-         z = np array of spatial avg assessment point heights (z=0 at ground level)
-         w = np array of assessment point weights
-    '''
+
+def sagnd(kind: str, n: int, L: float):
+    """Calculate height (z) and weighting (w) of spatial averaging points
+    for various schemes over ground
+    INPUTS:
+      kind = spatial averaging scheme ('ps','simple', 'RS', 'S13', 'S38', 'GQR')
+      n = number of spatial averaging points
+      L = spatial averaging length, or height of point for 'ps' case
+    OUTPUTS:
+      z = np array of spatial avg assessment point heights (z=0 at ground level)
+      w = np array of assessment point weights
+    """
 
     # Assertion tests on input data
-    kinds = ('ps','RS','Simple','S13','S38','GQR')
-    assert kind in kinds, f'kind {kind} must be one of {kinds}'
-    assert 0 < L <= 2, f'L ({L}) must be >0 and ≤2'
+    kinds = ("ps", "RS", "Simple", "S13", "S38", "GQR")
+    assert kind in kinds, f"kind {kind} must be one of {kinds}"
+    assert 0 < L <= 2, f"L ({L}) must be >0 and ≤2"
     assert type(n) == int
-    assert 1 <= n <= 640, f'n ({n}) must be ≥1 and ≤640'
+    assert 1 <= n <= 640, f"n ({n}) must be ≥1 and ≤640"
 
     # Select case for spatial averaging scheme
     match kind:
-        case 'ps':
+        case "ps":
             # point spatial
             z = np.array([float(L)])
-            w = np.array([1.])
+            w = np.array([1.0])
 
-        case 'Simple':
+        case "Simple":
             # Simple average
-            assert (n >= 2), f"n ({n}) must be >= 2"
-            z = np.linspace(0, L, n+1)
-            w = np.ones(n+1)/(n+1)
+            assert n >= 2, f"n ({n}) must be >= 2"
+            z = np.linspace(0, L, n + 1)
+            w = np.ones(n + 1) / (n + 1)
 
-        case 'RS':
+        case "RS":
             # Riemann Sum
-            assert (n >= 2), f"n ({n}) must be >= 2"
-            z = np.linspace(L/(2*n), L-L/(2*n), n)
+            assert n >= 2, f"n ({n}) must be >= 2"
+            z = np.linspace(L / (2 * n), L - L / (2 * n), n)
             w = np.ones(n) / n
 
-        case 'GQR':
+        case "GQR":
             # Gaussian Legendre Quadrature Rule
             z, w = np.polynomial.legendre.leggauss(n)
-            z = (z + 1) * L/2
+            z = (z + 1) * L / 2
             w = w / 2
 
-        case 'S13':
+        case "S13":
             # Simpsons 1/3 rule
-            assert (n >= 2), f"n ({n}) must be >= 2" # n denotes the number of intervals
-            assert ((n+1)%2 == 1), f"n ({n}) must be even number" # make sure the number of intervals is even number
-            z = np.linspace(0,L,n+1)
-            w = np.ones(n+1) # initialize the weights with n+1 numbers of 1
-            wts = [4.,2.]*int(n/2)  # create the middle part of the weights wts
-            wts.pop() # drop the last weight of wts
-            w[1:n] = wts[0:n-1] # replace the middle part of the weights
+            assert n >= 2, f"n ({n}) must be >= 2"  # n denotes the number of intervals
+            assert (
+                n + 1
+            ) % 2 == 1, f"n ({n}) must be even number"  # make sure the number of intervals is even number
+            z = np.linspace(0, L, n + 1)
+            w = np.ones(n + 1)  # initialize the weights with n+1 numbers of 1
+            wts = [4.0, 2.0] * int(n / 2)  # create the middle part of the weights wts
+            wts.pop()  # drop the last weight of wts
+            w[1:n] = wts[0 : n - 1]  # replace the middle part of the weights
             # for i in range(n-1):
             #     w[i+1] = wts[i]
-            w = w * L/(3*n) 
+            w = w * L / (3 * n)
 
-        case 'S38':
+        case "S38":
             # Simpsons 3/8 Rule
-            assert (n >= 4), f"n ({n}) must be >= 4"
-            assert ((n-1)%3 == 0), f"number of intervals ({n-1}) must be divisible by 3"
-            z = np.linspace(0,L,n)
+            assert n >= 4, f"n ({n}) must be >= 4"
+            assert (
+                n - 1
+            ) % 3 == 0, f"number of intervals ({n-1}) must be divisible by 3"
+            z = np.linspace(0, L, n)
             w = np.ones(n)
-            wts = [3.,3.,2.]*300  # a pop list for the weights
-            for i in range(n-2):
-                w[i+1] = wts.pop(0)
+            wts = [3.0, 3.0, 2.0] * 300  # a pop list for the weights
+            for i in range(n - 2):
+                w[i + 1] = wts.pop(0)
             w = w / sum(w)
 
     return z, w
+
 
 def compute_power_density(ground_type, S0, freqMHz, theta, pol, z):
     """Returns power density for a plane wave traveling through a
@@ -175,7 +187,7 @@ def compute_power_density(ground_type, S0, freqMHz, theta, pol, z):
     -------
     tuple
         Containing the equivalent plane wave power density (SH, SE, S0)
-    
+
     Notes
     -----
     The algorithm is based on the theory found in Weng Cho Chew,
@@ -185,7 +197,7 @@ def compute_power_density(ground_type, S0, freqMHz, theta, pol, z):
     """
     # initialize settings
     Z0 = np.sqrt(mu0 / eps0)  # free-space impedance
-    
+
     zi = [0]  # interface level between layer 1 and 2
     epsr = [1, 1]  # relative permittivities of layers 1 and 2
     mur = [1, 1]  # relative permeability of layers 1 and 2
@@ -195,21 +207,23 @@ def compute_power_density(ground_type, S0, freqMHz, theta, pol, z):
     w = 2.0 * np.pi * freqMHz * 1e6  # angular frequency
     theta = np.deg2rad(theta)
 
-    E0 = np.sqrt(2*S0*Z0)
+    E0 = np.sqrt(2 * S0 * Z0)
 
-    if ground_type == 'PEC Ground':
+    if ground_type == "PEC Ground":
         epsr = [1, 10]
         sigma = [0, 1e6]  # PEC Ground, lossless
-    elif ground_type == 'Wet Soil':
-        er, sigma_i = permittivity(ground_type,freqMHz)
+    elif ground_type == "Wet Soil":
+        er, sigma_i = permittivity(ground_type, freqMHz)
         epsr = [1, er]
         sigma = [0, sigma_i]  # wet soil
-    elif ground_type == 'Dry Soil':
-        er, sigma_i = permittivity(ground_type,freqMHz)
+    elif ground_type == "Dry Soil":
+        er, sigma_i = permittivity(ground_type, freqMHz)
         epsr = [1, er]
         sigma = [0, sigma_i]  # Dry soil
     else:
-        raise Exception(f"ground ({ground_type}) must be PEC Ground, Wet Soil or Dry Soil")
+        raise Exception(
+            f"ground ({ground_type}) must be PEC Ground, Wet Soil or Dry Soil"
+        )
 
     # wavenumber
     eps = [er * eps0 + s / (1j * w) for er, s in zip(epsr, sigma)]
@@ -261,8 +275,7 @@ def compute_power_density(ground_type, S0, freqMHz, theta, pol, z):
             A[k - 1]
             * np.exp(-1j * Kz[k - 1] * zi[k - 1])
             * T[k - 1, k]
-            / (1 - R[k, k - 1] * gR[k]
-               * np.exp(-2 * 1j * Kz[k] * (zi[k] - zi[k - 1])))
+            / (1 - R[k, k - 1] * gR[k] * np.exp(-2 * 1j * Kz[k] * (zi[k] - zi[k - 1])))
             / np.exp(-1j * Kz[k] * zi[k - 1])
         )
 
