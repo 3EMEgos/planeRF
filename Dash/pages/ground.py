@@ -21,8 +21,15 @@ from planeRF import compute_power_density, sagnd, compute_ns
         State("frequency-input", "value"),
     ],
 )
-def update_graph_TM(n_clicks, ground_type, sa_method_dpdn, S0, angle, frequency):
-    if n_clicks > 0 and S0 is not None and angle is not None and frequency is not None:
+def update_graph_TM(
+    n_clicks, ground_type, sa_method_dpdn, S0, angle, frequency
+):
+    if (
+        n_clicks > 0
+        and S0 is not None
+        and angle is not None
+        and frequency is not None
+    ):
         L = 2.0
         ground_type = str(ground_type)
         sa_method_dpdn = str(sa_method_dpdn)
@@ -32,7 +39,9 @@ def update_graph_TM(n_clicks, ground_type, sa_method_dpdn, S0, angle, frequency)
         Ns = compute_ns(frequency, L)
         Nt = Ns + 1
         z = np.linspace(-2, 0, Nt)  # z-direction coordinates
-        result = compute_power_density(ground_type, S0, frequency, angle, "TM", z)
+        result = compute_power_density(
+            ground_type, S0, frequency, angle, "TM", z
+        )
         Zs, Ws = sagnd(sa_method_dpdn, Ns, L)
         Ssa_h = np.dot(result[0][0:Nt:1], Ws) / L
         Ssa_e = np.dot(result[1][0:Nt:1], Ws) / L
@@ -85,7 +94,11 @@ def update_graph_TM(n_clicks, ground_type, sa_method_dpdn, S0, angle, frequency)
                     "gridcolor": "black",
                     "title": "Power Flux Density (W/m<sup>2</sup>)",
                 },
-                yaxis={"showgrid": False, "gridcolor": "black", "title": "z(m)"},
+                yaxis={
+                    "showgrid": False,
+                    "gridcolor": "black",
+                    "title": "z(m)",
+                },
                 plot_bgcolor="#fff",
                 width=360,
                 height=900,
@@ -116,8 +129,15 @@ def update_graph_TM(n_clicks, ground_type, sa_method_dpdn, S0, angle, frequency)
         State("frequency-input", "value"),
     ],
 )
-def update_graph_TE(n_clicks, ground_type, sa_method_dpdn, S0, angle, frequency):
-    if n_clicks > 0 and S0 is not None and angle is not None and frequency is not None:
+def update_graph_TE(
+    n_clicks, ground_type, sa_method_dpdn, S0, angle, frequency
+):
+    if (
+        n_clicks > 0
+        and S0 is not None
+        and angle is not None
+        and frequency is not None
+    ):
         L = 2.0
         ground_type = str(ground_type)
         sa_method_dpdn = str(sa_method_dpdn)
@@ -127,7 +147,9 @@ def update_graph_TE(n_clicks, ground_type, sa_method_dpdn, S0, angle, frequency)
         Ns = compute_ns(frequency, L)
         Nt = Ns + 1
         z = np.linspace(-2, 0, Nt)  # z-direction coordinates
-        result = compute_power_density(ground_type, S0, frequency, angle, "TE", z)
+        result = compute_power_density(
+            ground_type, S0, frequency, angle, "TE", z
+        )
         Zs, Ws = sagnd(sa_method_dpdn, Ns, L)
         Ssa_h = np.dot(result[0][0:Nt:1], Ws) / L
         Ssa_e = np.dot(result[1][0:Nt:1], Ws) / L
@@ -180,7 +202,11 @@ def update_graph_TE(n_clicks, ground_type, sa_method_dpdn, S0, angle, frequency)
                     "gridcolor": "black",
                     "title": "Power Flux Density (W/m<sup>2</sup>)",
                 },
-                yaxis={"showgrid": False, "gridcolor": "black", "title": "z(m)"},
+                yaxis={
+                    "showgrid": False,
+                    "gridcolor": "black",
+                    "title": "z(m)",
+                },
                 plot_bgcolor="#fff",
                 width=360,
                 height=900,
@@ -237,7 +263,11 @@ Layout_Ground = html.Div(
                         ),
                         html.Br(),
                         html.H6(
-                            ["Incident Power Flux Density (W/m", html.Sup("2"), ")"],
+                            [
+                                "Incident Power Flux Density (W/m",
+                                html.Sup("2"),
+                                ")",
+                            ],
                             style={"color": "Teal", "font-weight": "bold"},
                         ),
                         dcc.Input(
@@ -289,7 +319,10 @@ Layout_Ground = html.Div(
                                     "label": "Simple Spatial Averaging",
                                     "value": "Simple",
                                 },
-                                {"label": "Simpson's 1/3 Rule", "value": "S13"},
+                                {
+                                    "label": "Simpson's 1/3 Rule",
+                                    "value": "S13",
+                                },
                             ],
                             optionHeight=35,  # height/space between dropdown options
                             value="S13",  # dropdown value selected automatically when page loads
@@ -311,7 +344,10 @@ Layout_Ground = html.Div(
                         html.Br(),
                         html.Br(),
                         dbc.Button(
-                            "Run", id="run-button", style={"width": "30%"}, n_clicks=0
+                            "Run",
+                            id="run-button",
+                            style={"width": "30%"},
+                            n_clicks=0,
                         ),
                     ],
                     width={"size": 4},
@@ -341,7 +377,11 @@ layout = dbc.Container(
     [
         html.H4(
             "Plane Wave Oblique Incident onto PEC or Real Ground: TE and TM",
-            style={"color": "Teal", "font-weight": "bold", "textAlign": "center"},
+            style={
+                "color": "Teal",
+                "font-weight": "bold",
+                "textAlign": "center",
+            },
         ),
         html.Hr(),
         Layout_Ground,

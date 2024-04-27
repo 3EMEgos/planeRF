@@ -1,3 +1,5 @@
+import os
+
 import numpy as np
 import pandas as pd
 from scipy.constants import epsilon_0 as eps0, mu_0 as mu0
@@ -15,9 +17,9 @@ def permittivity(ground_type, freqMHz: float):
         T = 23 Celsius
         mv = 0.5 for wet soil; mv = 0.07 for dry soil
     OUTPUTS:
-        ε_r, sigma (ε_i)
+        eps__r, sigma (eps__i)
     """
-    df_soil = pd.read_csv("./Dash/assets/soil.csv")
+    df_soil = pd.read_csv(os.path.join("data", "soil.csv"))
     P_Sand = df_soil[df_soil["Type"] == ground_type]["Sand"].iloc[0]
     P_Clay = df_soil[df_soil["Type"] == ground_type]["Clay"].iloc[0]
     P_Silt = df_soil[df_soil["Type"] == ground_type]["Silt"].iloc[0]
@@ -28,45 +30,55 @@ def permittivity(ground_type, freqMHz: float):
 
     fGHz = freqMHz / 1000
 
-    σ1 = 0.0467 + 0.2204 * Pb - 0.004111 * P_Sand - 0.006614 * P_Clay  # eq(69)
-    σ2 = -1.645 + 1.939 * Pb - 0.0225622 * P_Sand + 0.01594 * P_Clay  # eq(70)
+    sigma_1 = (
+        0.0467 + 0.2204 * Pb - 0.004111 * P_Sand - 0.006614 * P_Clay
+    )  # eq(69)
+    sigma_2 = (
+        -1.645 + 1.939 * Pb - 0.0225622 * P_Sand + 0.01594 * P_Clay
+    )  # eq(70)
 
-    σeff_r = (fGHz / 1.35) * ((σ1 - σ2) / (1 + (fGHz / 1.35) ** 2))  # eq(67)
-    σeff_i = σ2 + ((σ1 - σ2) / (1 + (fGHz / 1.35) ** 2))  # eq(68)
+    sigma_eff_r = (fGHz / 1.35) * (
+        (sigma_1 - sigma_2) / (1 + (fGHz / 1.35) ** 2)
+    )  # eq(67)
+    sigma_eff_i = sigma_2 + (
+        (sigma_1 - sigma_2) / (1 + (fGHz / 1.35) ** 2)
+    )  # eq(68)
 
     Θ = 300 / (T + 273.15) - 1  # eq(11)
-    εs = 77.66 + 103.3 * Θ  # eq(8)
-    ε1 = 0.0671 * εs  # eq(9)
-    εinf = 3.52 - 7.52 * Θ  # eq(10)
+    eps_s = 77.66 + 103.3 * Θ  # eq(8)
+    eps_1 = 0.0671 * eps_s  # eq(9)
+    eps_inf = 3.52 - 7.52 * Θ  # eq(10)
 
     f1 = 20.20 - 146.4 * Θ + 316 * Θ**2  # eq(12)
     f2 = 39.8 * f1  # eq(13)
 
-    # εfw_r and εfw_i are the real and the imaginary parts of the complex relative permittivity of free water
+    # eps_fw_r and eps_fw_i are the real and the imaginary parts of the complex relative permittivity of free water
 
-    εfw_r = (
-        (εs - ε1) / (1 + (fGHz / f1) ** 2)
-        + (ε1 - εinf) / (1 + (fGHz / f2) ** 2)
-        + εinf
-        + (18 * σeff_r / fGHz) * ((Ps - Pb) / (Ps * mv))
+    eps_fw_r = (
+        (eps_s - eps_1) / (1 + (fGHz / f1) ** 2)
+        + (eps_1 - eps_inf) / (1 + (fGHz / f2) ** 2)
+        + eps_inf
+        + (18 * sigma_eff_r / fGHz) * ((Ps - Pb) / (Ps * mv))
     )  # eq(65)
 
-    εfw_i = (
-        (fGHz / f1) * (εs - ε1) / (1 + (fGHz / f1) ** 2)
-        + (fGHz / f2) * (ε1 - εinf) / (1 + (fGHz / f2) ** 2)
-        + (18 * σeff_i / fGHz) * ((Ps - Pb) / (Ps * mv))
+    eps_fw_i = (
+        (fGHz / f1) * (eps_s - eps_1) / (1 + (fGHz / f1) ** 2)
+        + (fGHz / f2) * (eps_1 - eps_inf) / (1 + (fGHz / f2) ** 2)
+        + (18 * sigma_eff_i / fGHz) * ((Ps - Pb) / (Ps * mv))
     )  # eq(66)
 
-    εsm_r = (1.01 + 0.44 * Ps) ** 2 - 0.062  # eq(61)
+    eps_sm_r = (1.01 + 0.44 * Ps) ** 2 - 0.062  # eq(61)
     β_r = 1.2748 - 0.00519 * P_Sand - 0.00152 * P_Clay  # eq(62)
     β_i = 1.33797 - 0.00603 * P_Sand - 0.00166 * P_Clay  # eq(63)
     α = 0.65  # eq(64)
 
-    ε_r = (1 + (Pb / Ps) * (εsm_r**α - 1) + (mv**β_r) * (εfw_r**α) - mv) ** (1 / α)
-    ε_i = ((mv**β_i) * (εfw_i**α)) ** (1 / α)
-    sigma = 0.05563 * fGHz * ε_i  # eq(3a)
+    eps__r = (
+        1 + (Pb / Ps) * (eps_sm_r**α - 1) + (mv**β_r) * (eps_fw_r**α) - mv
+    ) ** (1 / α)
+    eps__i = ((mv**β_i) * (eps_fw_i**α)) ** (1 / α)
+    sigma = 0.05563 * fGHz * eps__i  # eq(3a)
 
-    return ε_r, sigma
+    return eps__r, sigma
 
 
 def compute_ns(freqMHz: float, L: float):
@@ -132,13 +144,19 @@ def sagnd(kind: str, n: int, L: float):
 
         case "S13":
             # Simpsons 1/3 rule
-            assert n >= 2, f"n ({n}) must be >= 2"  # n denotes the number of intervals
+            assert (
+                n >= 2
+            ), f"n ({n}) must be >= 2"  # n denotes the number of intervals
             assert (
                 n + 1
-            ) % 2 == 1, f"n ({n}) must be even number"  # make sure the number of intervals is even number
+            ) % 2 == 1, (  # make sure the number of intervals is even number
+                f"n ({n}) must be even number"
+            )
             z = np.linspace(0, L, n + 1)
             w = np.ones(n + 1)  # initialize the weights with n+1 numbers of 1
-            wts = [4.0, 2.0] * int(n / 2)  # create the middle part of the weights wts
+            wts = [4.0, 2.0] * int(
+                n / 2
+            )  # create the middle part of the weights wts
             wts.pop()  # drop the last weight of wts
             w[1:n] = wts[0 : n - 1]  # replace the middle part of the weights
             # for i in range(n-1):
@@ -275,7 +293,12 @@ def compute_power_density(ground_type, S0, freqMHz, theta, pol, z):
             A[k - 1]
             * np.exp(-1j * Kz[k - 1] * zi[k - 1])
             * T[k - 1, k]
-            / (1 - R[k, k - 1] * gR[k] * np.exp(-2 * 1j * Kz[k] * (zi[k] - zi[k - 1])))
+            / (
+                1
+                - R[k, k - 1]
+                * gR[k]
+                * np.exp(-2 * 1j * Kz[k] * (zi[k] - zi[k - 1]))
+            )
             / np.exp(-1j * Kz[k] * zi[k - 1])
         )
 

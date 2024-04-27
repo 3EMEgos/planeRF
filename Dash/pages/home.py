@@ -13,7 +13,10 @@ dash.page_container.style = {
 card_main1 = dbc.Card(
     [
         dbc.CardImg(
-            src="/assets/image-1.png", top=True, bottom=False, title="Image by Vitas"
+            src="/assets/image-1.png",
+            top=True,
+            bottom=False,
+            title="Image by Vitas",
         ),
         dbc.CardBody(
             [
@@ -38,7 +41,10 @@ card_main1 = dbc.Card(
 card_main2 = dbc.Card(
     [
         dbc.CardImg(
-            src="/assets/image-2.png", top=True, bottom=False, title="Image by Vitas"
+            src="/assets/image-2.png",
+            top=True,
+            bottom=False,
+            title="Image by Vitas",
         ),
         dbc.CardBody(
             [
@@ -49,7 +55,9 @@ card_main2 = dbc.Card(
                     className="card-text",
                 ),
                 # dbc.Button("Press me", color="primary"),
-                dbc.CardLink("Human Tissue SAR", href="/tissue", target="_blank"),
+                dbc.CardLink(
+                    "Human Tissue SAR", href="/tissue", target="_blank"
+                ),
             ]
         ),
     ],
