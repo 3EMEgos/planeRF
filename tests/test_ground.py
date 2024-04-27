@@ -9,14 +9,14 @@ def test_compute_power_density():
     f = 1e9  # replace with your desired frequency
     theta = 45  # replace with your desired angle
     pol = "TM"
+    z = np.linspace(-1, 1)
 
     # perform the computation
-    SH, SE, S0 = compute_power_density('PEC Ground', 100, f, theta, pol)
+    SH, SE = compute_power_density("PEC Ground", 100, f, theta, pol, z)
 
     # check the output types
     assert isinstance(SH, np.ndarray)
     assert isinstance(SE, np.ndarray)
-    assert isinstance(S0, np.ndarray)
 
     # do additional checks based on your knowledge of expected values
     # ...
