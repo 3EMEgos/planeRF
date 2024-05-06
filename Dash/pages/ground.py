@@ -39,6 +39,7 @@ def update_graph_TM(
         Ns = compute_ns(frequency, L)
         Nt = Ns + 1
         z = np.linspace(-2, 0, Nt)  # z-direction coordinates
+        z[-1] = -1E-6 # make the last z value slightly below zero
         result = compute_power_density(
             ground_type, S0, frequency, angle, "TM", z
         )
@@ -147,6 +148,7 @@ def update_graph_TE(
         Ns = compute_ns(frequency, L)
         Nt = Ns + 1
         z = np.linspace(-2, 0, Nt)  # z-direction coordinates
+        z[-1] = -1E-6  # make the last z value slightly below zero
         result = compute_power_density(
             ground_type, S0, frequency, angle, "TE", z
         )
@@ -264,9 +266,7 @@ Layout_Ground = html.Div(
                         html.Br(),
                         html.H6(
                             [
-                                "Incident Power Flux Density (W/m",
-                                html.Sup("2"),
-                                ")",
+                                "Incident Power Flux Density (W/m²)",
                             ],
                             style={"color": "Teal", "font-weight": "bold"},
                         ),
@@ -281,7 +281,7 @@ Layout_Ground = html.Div(
                         html.Br(),
                         html.Br(),
                         html.H6(
-                            ["Angle of Incident (", html.Sup("o"), ")"],
+                            ["Angle of Incidence (degrees)"],
                             style={"color": "Teal", "font-weight": "bold"},
                         ),
                         dcc.Input(
@@ -309,7 +309,7 @@ Layout_Ground = html.Div(
                         html.Br(),
                         html.Br(),
                         html.H6(
-                            "Spatial Average Methods",
+                            "Spatial Averaging Method",
                             style={"color": "Teal", "font-weight": "bold"},
                         ),
                         dcc.Dropdown(
@@ -320,7 +320,7 @@ Layout_Ground = html.Div(
                                     "value": "Simple",
                                 },
                                 {
-                                    "label": "Simpson's 1/3 Rule",
+                                    "label": "Simpson's ⅓ Rule",
                                     "value": "S13",
                                 },
                             ],
@@ -333,7 +333,7 @@ Layout_Ground = html.Div(
                             placeholder="Please select...",  # gray, default text shown when no option is selected
                             clearable=False,  # allow user to removes the selected value
                             style={
-                                "width": "70%"
+                                "width": "75%"
                             },  # use dictionary to define CSS styles of your dropdown
                             # className='select_box',           #activate separate CSS document in assets folder
                             # persistence=True,                 #remembers dropdown value. Used with persistence_type
@@ -376,7 +376,7 @@ Layout_Ground = html.Div(
 layout = dbc.Container(
     [
         html.H4(
-            "Plane Wave Oblique Incident onto PEC or Real Ground: TE and TM",
+            "Plane wave obliquely incident on PEC or real ground",
             style={
                 "color": "Teal",
                 "font-weight": "bold",
