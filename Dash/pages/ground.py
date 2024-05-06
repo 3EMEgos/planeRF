@@ -9,16 +9,16 @@ from planeRF import compute_power_density, sagnd, compute_ns
 
 
 @callback(
-    Output(component_id="output-graphTM", component_property="figure"),
+    Output(component_id="output_graph_TM", component_property="figure"),
     [
-        Input("run-button", "n_clicks"),
-        Input("Ground_raditem", "value"),
+        Input("run_button", "n_clicks"),
+        Input("ground_radioitem", "value"),
         Input("sa_method_dpdn", "value"),
     ],
     [
-        State("s-input", "value"),
-        State("angle-input", "value"),
-        State("frequency-input", "value"),
+        State("S0_input", "value"),
+        State("angle_input", "value"),
+        State("fMHz_input", "value"),
     ],
 )
 def update_graph_TM(
@@ -89,23 +89,23 @@ def update_graph_TM(
             )
 
             layout = go.Layout(
-                title=f"TM mode, {frequency:g} MHz, theta = {angle:g}°",
+                title=f"TM mode, {frequency:g} MHz, θ = {angle:g}°",
+                title_x=0.5,
                 xaxis={
-                    "showgrid": False,
-                    "gridcolor": "black",
-                    "title": "Power Flux Density (W/m<sup>2</sup>)",
+                    "title": "S (W/m²)",
+                    "range": [0,None],
                 },
                 yaxis={
-                    "showgrid": False,
-                    "gridcolor": "black",
-                    "title": "z(m)",
+                    "title": "height (m)",
+                    "range": [0,2],
                 },
-                plot_bgcolor="#fff",
                 width=360,
                 height=900,
+                template='plotly',
+                legend={'yanchor':'top','y':-0.1,
+                        'xanchor':'center','x':0.5},
             )
 
-            # fig = go.Figure(data=[trace], layout=layout)
             fig = go.Figure(layout=layout)
             fig.add_trace(trace1)
             fig.add_trace(trace2)
@@ -113,21 +113,22 @@ def update_graph_TM(
             fig.add_trace(trace4)
             fig.add_trace(trace5)
             return fig
+        
     elif S0 is None or angle is None or frequency is None:
         raise dash.exceptions.PreventUpdate
 
 
 @callback(
-    Output(component_id="output-graphTE", component_property="figure"),
+    Output(component_id="output_graph_TE", component_property="figure"),
     [
-        Input("run-button", "n_clicks"),
-        Input("Ground_raditem", "value"),
+        Input("run_button", "n_clicks"),
+        Input("ground_radioitem", "value"),
         Input("sa_method_dpdn", "value"),
     ],
     [
-        State("s-input", "value"),
-        State("angle-input", "value"),
-        State("frequency-input", "value"),
+        State("S0_input", "value"),
+        State("angle_input", "value"),
+        State("fMHz_input", "value"),
     ],
 )
 def update_graph_TE(
@@ -198,11 +199,11 @@ def update_graph_TE(
             )
 
             layout = go.Layout(
-                title=f"TE mode, {frequency:g} MHz, theta = {angle:g}°",
+                title=f"TE mode, {frequency:g} MHz, θ = {angle:g}°",
                 xaxis={
                     "showgrid": False,
                     "gridcolor": "black",
-                    "title": "Power Flux Density (W/m<sup>2</sup>)",
+                    "title": "Power Flux Density (W/m²)",
                 },
                 yaxis={
                     "showgrid": False,
@@ -224,19 +225,12 @@ def update_graph_TE(
     elif S0 is None or angle is None or frequency is None:
         raise dash.exceptions.PreventUpdate
 
-
 dash.register_page(
     __name__,
     path="/ground",
     title="Ground Reflection",
     name="Ground Reflection",
 )
-
-# dash.page_container.style = {
-#     "margin-left": "18rem",
-#     "margin-right": "2rem",
-#     "padding": "1rem 1rem",
-# }
 
 Layout_Ground = html.Div(
     [
@@ -246,15 +240,15 @@ Layout_Ground = html.Div(
                     [
                         html.H4(
                             "Input Parameters",
-                            style={"color": "Teal", "font-weight": "bold"},
+                            style={"color": "Teal", "font-weight": "bold", "font-size":18},
                         ),
                         html.Br(),
                         html.H6(
                             "Ground Type",
-                            style={"color": "Teal", "font-weight": "bold"},
+                            style={"color": "Teal", "font-weight": "bold", "font-size":14},
                         ),
                         dcc.RadioItems(
-                            id="Ground_raditem",
+                            id="ground_radioitem",
                             options=[
                                 {"label": "PEC Ground", "value": "PEC Ground"},
                                 {"label": "Wet Soil", "value": "Wet Soil"},
@@ -266,12 +260,12 @@ Layout_Ground = html.Div(
                         html.Br(),
                         html.H6(
                             [
-                                "Incident Power Flux Density (W/m²)",
+                                "Incident power density, S₀ (W/m²)",
                             ],
-                            style={"color": "Teal", "font-weight": "bold"},
+                            style={"color": "Teal", "font-weight": "bold", "font-size":14},
                         ),
                         dcc.Input(
-                            id="s-input",
+                            id="S0_input",
                             type="number",
                             placeholder="",
                             min=0.1,
@@ -281,11 +275,11 @@ Layout_Ground = html.Div(
                         html.Br(),
                         html.Br(),
                         html.H6(
-                            ["Angle of Incidence (degrees)"],
-                            style={"color": "Teal", "font-weight": "bold"},
+                            ["Angle of incidence, θ°"],
+                            style={"color": "Teal", "font-weight": "bold", "font-size":14},
                         ),
                         dcc.Input(
-                            id="angle-input",
+                            id="angle_input",
                             type="number",
                             placeholder="",
                             min=0.0,
@@ -296,10 +290,10 @@ Layout_Ground = html.Div(
                         html.Br(),
                         html.H6(
                             "Frequency (MHz)",
-                            style={"color": "Teal", "font-weight": "bold"},
+                            style={"color": "Teal", "font-weight": "bold", "font-size":14},
                         ),
                         dcc.Input(
-                            id="frequency-input",
+                            id="fMHz_input",
                             type="number",
                             placeholder="",
                             min=1,
@@ -310,7 +304,7 @@ Layout_Ground = html.Div(
                         html.Br(),
                         html.H6(
                             "Spatial Averaging Method",
-                            style={"color": "Teal", "font-weight": "bold"},
+                            style={"color": "Teal", "font-weight": "bold", "font-size":14},
                         ),
                         dcc.Dropdown(
                             id="sa_method_dpdn",
@@ -333,7 +327,7 @@ Layout_Ground = html.Div(
                             placeholder="Please select...",  # gray, default text shown when no option is selected
                             clearable=False,  # allow user to removes the selected value
                             style={
-                                "width": "75%"
+                                "width": "90%"
                             },  # use dictionary to define CSS styles of your dropdown
                             # className='select_box',           #activate separate CSS document in assets folder
                             # persistence=True,                 #remembers dropdown value. Used with persistence_type
@@ -341,11 +335,9 @@ Layout_Ground = html.Div(
                         ),
                         html.Br(),
                         html.Br(),
-                        html.Br(),
-                        html.Br(),
                         dbc.Button(
                             "Run",
-                            id="run-button",
+                            id="run_button",
                             style={"width": "30%"},
                             n_clicks=0,
                         ),
@@ -354,7 +346,7 @@ Layout_Ground = html.Div(
                 ),
                 dbc.Col(
                     dcc.Graph(
-                        id="output-graphTM",
+                        id="output_graph_TM",
                         figure={},
                         style={"box-shadow": "6px 6px 6px lightgrey"},
                     ),
@@ -362,7 +354,7 @@ Layout_Ground = html.Div(
                 ),
                 dbc.Col(
                     dcc.Graph(
-                        id="output-graphTE",
+                        id="output_graph_TE",
                         figure={},
                         style={"box-shadow": "6px 6px 6px lightgrey"},
                     ),
@@ -376,7 +368,7 @@ Layout_Ground = html.Div(
 layout = dbc.Container(
     [
         html.H4(
-            "Plane wave obliquely incident on PEC or real ground",
+            "Power flux density height profile for plane wave obliquely incident on PEC or real ground",
             style={
                 "color": "Teal",
                 "font-weight": "bold",

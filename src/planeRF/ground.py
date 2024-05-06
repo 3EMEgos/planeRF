@@ -180,31 +180,32 @@ def sagnd(kind: str, n: int, L: float):
 
 
 def compute_power_density(ground_type, S0, freqMHz, theta, pol, z):
-    """Returns power density for a plane wave traveling through a
-    multilayered infinite planar medium where the first and last layers
-    have infinite thickness.
+    """Calculate the plane wave equivalent power density levels of E & H above ground
+    for a plane wave in air that is obliquely incident on a PEC or real ground
 
     Parameters
     ----------
-    ground_type : string
-        Type of ground, either 'PEC Ground' or any other string for
-        real ground.
-    E0 : float
-        Electric field magnitude of the incident plane wave (V/m).
-    f : float
+    ground_type : {'PEC Ground', 'Wet Soil', 'Dry Soil'}
+        Type of ground
+    S0 : float
+        Power flux density of the incident plane wave in W/m²
+    freqMHz : float
         Frequency of the plane wave in MHz.
     theta : float
-        Incoming angle of the propagation vector (k) relative to the
-        normal of the first interface.
+        Angle of incidence in degrees of the plane wave, i.e. incoming angle of the 
+        propagation vector (k) relative to the normal of the first interface.
     pol : {'TM', 'TE'}
         Polarization of the plane wave.
-        'TM' = TM polarized wave (H parallel to interface)
-        'TE' = TE polarized wave (E parallel to interface)
+        'TM' = Transverse Magnetic polarization (H parallel to interface)
+        'TE' = Transverse Electric polarization (E parallel to interface)
+    z : numpy float array
+        height of points above ground in m. Note that ground level is 0 and
+        increasing heights above ground are -ve
 
     Returns
     -------
-    tuple
-        Containing the equivalent plane wave power density (SH, SE, S0)
+    tuple : (SH, SE)
+        Equivalent power density levels for H and E calculated at z heights
 
     Notes
     -----
@@ -213,20 +214,24 @@ def compute_power_density(ground_type, S0, freqMHz, theta, pol, z):
     Electromagnetic Waves. The code was adapted from a Matlab script
     developed by Kimmo Karkkainen.
     """
+    # Data input checks
+    GROUNDS = ('PEC Ground', 'Wet Soil', 'Dry Soil')
+    assert ground_type in GROUNDS, f'ground_type ({ground_type}) must be in {GROUNDS}'
+    POLS = ('TE','TM')
+    assert pol in POLS, f'pol ({pol}) must be in {POLS}'
+    assert 0 <= theta <= 90, f'theta ({theta}) must be within range of 0° to 90°'
+
     # initialize settings
+    N = 2  # number of layers
     Z0 = np.sqrt(mu0 / eps0)  # free-space impedance
-
-    zi = [0]  # interface level between layer 1 and 2
-    epsr = [1, 1]  # relative permittivities of layers 1 and 2
-    mur = [1, 1]  # relative permeability of layers 1 and 2
-    # sigma = [0, 1e6]  # lossless conditions
+    zi = [0]  # interface level between layer 1 (air) and 2 (ground)
     zi.append(1e9)  # add a very large z value to act as infinity
-    N = len(epsr)  # number of layers
+    mur = [1, 1]  # relative permeability of layers 1 and 2
     w = 2.0 * np.pi * freqMHz * 1e6  # angular frequency
-    theta = np.deg2rad(theta)
+    theta = np.deg2rad(theta)  # convert theta from degrees to radians
+    E0 = np.sqrt(2 * S0 * Z0)  # calculate peak E-field level of S0
 
-    E0 = np.sqrt(2 * S0 * Z0)
-
+    # Set permittivity and conductivity of ground
     if ground_type == "PEC Ground":
         epsr = [1, 10]
         sigma = [0, 1e6]  # PEC Ground, lossless
@@ -238,10 +243,6 @@ def compute_power_density(ground_type, S0, freqMHz, theta, pol, z):
         er, sigma_i = permittivity(ground_type, freqMHz)
         epsr = [1, er]
         sigma = [0, sigma_i]  # Dry soil
-    else:
-        raise Exception(
-            f"ground ({ground_type}) must be PEC Ground, Wet Soil or Dry Soil"
-        )
 
     # wavenumber
     eps = [er * eps0 + s / (1j * w) for er, s in zip(epsr, sigma)]
@@ -333,4 +334,5 @@ def compute_power_density(ground_type, S0, freqMHz, theta, pol, z):
         Hz = (1 / Z0) * np.sin(theta) * (Ef + Eb)
         SH = 0.5 * E0**2 * Z0 * (np.abs(Hx) ** 2 + np.abs(Hz) ** 2)
         SE = 0.5 * E0**2 * (1 / Z0) * (np.abs(Ef + Eb)) ** 2
+
     return SH, SE
