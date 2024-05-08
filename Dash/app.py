@@ -1,10 +1,15 @@
 import dash
+from dash import html, dcc, Dash
 import dash_bootstrap_components as dbc
-from dash import html, dcc
+from dash_bootstrap_templates import load_figure_template
 
-app = dash.Dash(
-    __name__, external_stylesheets=[dbc.themes.FLATLY], use_pages=True
+# Create dash app with a FLATLY theme
+app = Dash(
+        __name__, external_stylesheets=[dbc.themes.FLATLY], use_pages=True
 )
+
+# Apply FLATLY theme to figures
+load_figure_template('FLATLY')
 
 # styling the sidebar
 SIDEBAR_STYLE = {
@@ -16,13 +21,6 @@ SIDEBAR_STYLE = {
     "padding": "1rem 1rem",
     # "background-color": "#f8f9fa",
 }
-
-# padding for the page content
-# CONTENT_STYLE = {
-#     "margin-left": "18rem",  # "18rem",
-#     "margin-right": "2rem",  # "2rem",
-#     "padding": "1rem 1rem",
-# }
 
 Sidebar = html.Div(
     [

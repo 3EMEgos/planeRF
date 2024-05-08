@@ -9,6 +9,31 @@ from planeRF import compute_power_density, sagnd, compute_ns
 
 
 @callback(
+    Output(component_id="plot_suptitle",component_property="children"),
+    [
+        Input("run_button", "n_clicks"),
+        Input("ground_radioitem", "value"),
+        Input("sa_method_dpdn", "value"),
+    ],
+    [
+        State("S0_input", "value"),
+        State("angle_input", "value"),
+        State("fMHz_input", "value"),
+    ],
+)
+def update_suptitle(
+    n_clicks, ground_type, sa_method_dpdn, S0, angle, frequency
+):
+    if (
+        n_clicks > 0
+        and S0 is not None
+        and angle is not None
+        and frequency is not None
+    ):
+        return f'{ground_type}, {frequency:g} MHz, θ = {angle:g}°'
+    
+
+@callback(
     Output(component_id="output_graph_TM", component_property="figure"),
     [
         Input("run_button", "n_clicks"),
@@ -39,7 +64,7 @@ def update_graph_TM(
         Ns = compute_ns(frequency, L)
         Nt = Ns + 1
         z = np.linspace(-2, 0, Nt)  # z-direction coordinates
-        z[-1] = -1E-6 # make the last z value slightly below zero
+        z[-1] = -1E-8 # make the last z value slightly below zero
         result = compute_power_density(
             ground_type, S0, frequency, angle, "TM", z
         )
@@ -47,61 +72,58 @@ def update_graph_TM(
         Ssa_h = np.dot(result[0][0:Nt:1], Ws) / L
         Ssa_e = np.dot(result[1][0:Nt:1], Ws) / L
 
+        Y = np.linspace(0, 2, Nt)
         if result is not None:
             trace1 = go.Scatter(
-                # y=np.linspace(-2, 0, Nt),
-                # x=result[0],
-                y=np.linspace(0, 2, Nt),
-                x=result[0][Nt:0:-1],
+                y=Y,
+                x=result[1][::-1],
                 mode="lines",
-                line=dict(color="pink", width=1),
-                name="S<sub>H</sub>",
-            )
-            trace2 = go.Scatter(
-                # y=np.linspace(-2, 0, Nt),
-                # x=result[1],
-                y=np.linspace(0, 2, Nt),
-                x=result[1][Nt:0:-1],
-                mode="lines",
-                line=dict(color="cyan", width=1),
+                line=dict(color="#EE6677", width=1.5),  # red EE6677
                 name="S<sub>E</sub>",
             )
+            trace2 = go.Scatter(
+                y=Y,
+                # x=result[1][Nt:0:-1],
+                x=result[0][::-1],
+                mode="lines",
+                line=dict(color="#66CCEE", width=1.5),  # cyan 66CCEE
+                name="S<sub>H</sub>",
+            )
             trace3 = go.Scatter(
-                # y=np.linspace(-2, 0, Nt),
-                y=np.linspace(0, 2, Nt),
-                x=S0 * np.ones(len(z)),
-                line=dict(color="black", width=2, dash="dash"),
-                name=f"S<sub>0</sub>: {round(S0,1):g}",
+                y=[0,2],
+                x=[S0,S0],
+                mode="lines",
+                line=dict(color="#228833", width=1.5),  # green 228833
+                name=f"S<sub>0</sub> = {round(S0,2):g}",
             )
             trace4 = go.Scatter(
-                # y=np.linspace(-2, 0, Ns),
-                y=np.linspace(0, 2, Nt),
-                x=Ssa_h * np.ones(Nt),
-                line=dict(color="red", width=2, dash="dash"),
-                name=f"S<sub>saH</sub>: {round(Ssa_h,1):g}",
+                y=[0,2],
+                x=[Ssa_e,Ssa_e],
+                mode="lines",
+                line=dict(color="#AA3377", width=1.5, dash="dot"),  # purple AA3377
+                name=f"S<sub>saE</sub> = {round(Ssa_e,2):g}",
             )
             trace5 = go.Scatter(
-                # y=np.linspace(-2, 0, Ns),
-                y=np.linspace(0, 2, Nt),
-                x=Ssa_e * np.ones(Nt),
-                line=dict(color="blue", width=2, dash="dash"),
-                name=f"S<sub>saE</sub>: {round(Ssa_e,1):g}",
+                y=[0,2],
+                x=[Ssa_h,Ssa_h],
+                mode="lines",
+                line=dict(color="#4477AA", width=1.5, dash="dash"),  # blue 4477AA
+                name=f"S<sub>saH</sub> = {round(Ssa_h,2):g}",
             )
 
             layout = go.Layout(
-                title=f"TM mode, {frequency:g} MHz, θ = {angle:g}°",
+                title=f"TM mode",
                 title_x=0.5,
                 xaxis={
                     "title": "S (W/m²)",
                     "range": [0,None],
                 },
                 yaxis={
-                    "title": "height (m)",
+                    "title": "height above ground (m)",
                     "range": [0,2],
                 },
                 width=360,
                 height=900,
-                template='plotly',
                 legend={'yanchor':'top','y':-0.1,
                         'xanchor':'center','x':0.5},
             )
@@ -149,7 +171,7 @@ def update_graph_TE(
         Ns = compute_ns(frequency, L)
         Nt = Ns + 1
         z = np.linspace(-2, 0, Nt)  # z-direction coordinates
-        z[-1] = -1E-6  # make the last z value slightly below zero
+        z[-1] = -1E-8  # make the last z value slightly below zero
         result = compute_power_density(
             ground_type, S0, frequency, angle, "TE", z
         )
@@ -157,64 +179,60 @@ def update_graph_TE(
         Ssa_h = np.dot(result[0][0:Nt:1], Ws) / L
         Ssa_e = np.dot(result[1][0:Nt:1], Ws) / L
 
+        Y = np.linspace(0, 2, Nt)
         if result is not None:
             trace1 = go.Scatter(
-                # y=np.linspace(-2, 0, Nt),
-                # x=result[0],
-                y=np.linspace(0, 2, Nt),
-                x=result[0][Nt:0:-1],
+                y=Y,
+                x=result[1][::-1],
                 mode="lines",
-                line=dict(color="pink", width=1),
-                name="S<sub>H</sub>",
-            )
-            trace2 = go.Scatter(
-                # y=np.linspace(-2, 0, Nt),
-                # x=result[1],
-                y=np.linspace(0, 2, Nt),
-                x=result[1][Nt:0:-1],
-                mode="lines",
-                line=dict(color="cyan", width=1),
+                line=dict(color="#EE6677", width=1.5),  # red EE6677
                 name="S<sub>E</sub>",
             )
+            trace2 = go.Scatter(
+                y=Y,
+                x=result[0][::-1],
+                mode="lines",
+                line=dict(color="#66CCEE", width=1.5),  # cyan 66CCEE
+                name="S<sub>H</sub>",
+            )
             trace3 = go.Scatter(
-                # y=np.linspace(-2, 0, Nt),
-                y=np.linspace(0, 2, Nt),
-                x=S0 * np.ones(len(z)),
-                line=dict(color="black", width=2, dash="dash"),
-                name=f"S<sub>0</sub>: {round(S0,1):g}",
+                y=[0,2],
+                x=[S0,S0],
+                mode="lines",
+                line=dict(color="#228833", width=1.5),  # green 228833
+                name=f"S<sub>0</sub>: {round(S0,2):g}",
             )
             trace4 = go.Scatter(
-                # y=np.linspace(-2, 0, Ns),
-                y=np.linspace(0, 2, Nt),
-                x=Ssa_h * np.ones(Nt),
-                line=dict(color="red", width=2, dash="dash"),
-                name=f"S<sub>saH</sub>: {round(Ssa_h,1):g}",
+                y=[0,2],
+                x=[Ssa_e,Ssa_e],
+                mode="lines",
+                line=dict(color="#AA3377", width=1.5, dash="dot"),  # purple AA3377
+                name=f"S<sub>saE</sub>: {round(Ssa_e,2):g}",
             )
             trace5 = go.Scatter(
-                # y=np.linspace(-2, 0, Ns),
-                y=np.linspace(0, 2, Nt),
-                x=Ssa_e * np.ones(Nt),
-                line=dict(color="blue", width=2, dash="dash"),
-                name=f"S<sub>saE</sub>: {round(Ssa_e,1):g}",
+                y=[0,2],
+                x=[Ssa_h,Ssa_h],
+                mode="lines",
+                line=dict(color="#4477AA", width=1.5, dash="dash"),  # blue 4477AA
+                name=f"S<sub>saH</sub>: {round(Ssa_h,2):g}",
             )
 
             layout = go.Layout(
-                title=f"TE mode, {frequency:g} MHz, θ = {angle:g}°",
+                title=f"TE mode",
+                title_x=0.5,
                 xaxis={
-                    "showgrid": False,
-                    "gridcolor": "black",
-                    "title": "Power Flux Density (W/m²)",
+                    "title": "S (W/m²)",
+                    "range": [0,None],
                 },
                 yaxis={
-                    "showgrid": False,
-                    "gridcolor": "black",
-                    "title": "z(m)",
+                    "title": "height above ground (m)",
+                    "range": [0,2],
                 },
-                plot_bgcolor="#fff",
                 width=360,
                 height=900,
+                legend={'yanchor':'top','y':-0.1,
+                        'xanchor':'center','x':0.5},
             )
-            # fig = go.Figure(data=[trace], layout=layout)
             fig = go.Figure(layout=layout)
             fig.add_trace(trace1)
             fig.add_trace(trace2)
@@ -240,7 +258,8 @@ Layout_Ground = html.Div(
                     [
                         html.H4(
                             "Input Parameters",
-                            style={"color": "Teal", "font-weight": "bold", "font-size":18},
+                            style={"color": "Teal", "font-weight": "bold", 
+                                   "font-size":18,"text-align":"center"}
                         ),
                         html.Br(),
                         html.H6(
@@ -270,6 +289,7 @@ Layout_Ground = html.Div(
                             placeholder="",
                             min=0.1,
                             max=1000.0,
+                            value=100,
                             style={"width": "40%"},
                         ),
                         html.Br(),
@@ -284,6 +304,7 @@ Layout_Ground = html.Div(
                             placeholder="",
                             min=0.0,
                             max=90.0,  # limit the angle range from 0 to 90degs
+                            step=5,
                             style={"width": "40%"},
                         ),
                         html.Br(),
@@ -298,6 +319,7 @@ Layout_Ground = html.Div(
                             placeholder="",
                             min=1,
                             max=6000,  # limit the freq range from 30MHz to 60GHz
+                            value=900,
                             style={"width": "40%"},
                         ),
                         html.Br(),
@@ -310,7 +332,7 @@ Layout_Ground = html.Div(
                             id="sa_method_dpdn",
                             options=[
                                 {
-                                    "label": "Simple Spatial Averaging",
+                                    "label": "Simple Averaging",
                                     "value": "Simple",
                                 },
                                 {
@@ -345,21 +367,51 @@ Layout_Ground = html.Div(
                     width={"size": 4},
                 ),
                 dbc.Col(
-                    dcc.Graph(
-                        id="output_graph_TM",
-                        figure={},
-                        style={"box-shadow": "6px 6px 6px lightgrey"},
-                    ),
-                    width={"size": 4},
-                ),
-                dbc.Col(
-                    dcc.Graph(
-                        id="output_graph_TE",
-                        figure={},
-                        style={"box-shadow": "6px 6px 6px lightgrey"},
-                    ),
-                    width={"size": 4},
-                ),
+                    [
+                        html.Label(
+                            children="Ground type, frequency & angle of incidence",
+                            id="plot_suptitle",
+                            style={"color": "Black", "font-weight": "bold",
+                                   "font-size":18},
+                        ),
+                        dbc.Row(
+                            [
+                                dbc.Col(
+                                    dcc.Graph(
+                                            id="output_graph_TM",
+                                            figure={},
+                                            style={"box-shadow": "6px 6px 6px lightgrey"},
+                                    ),
+                                    width={"size": 6},
+                                ),
+                                dbc.Col(
+                                    dcc.Graph(
+                                        id="output_graph_TE",
+                                        figure={},
+                                        style={"box-shadow": "6px 6px 6px lightgrey"},
+                                    ),
+                                    width={"size": 6},
+                                ),
+                            ],
+                        ),
+                    ],
+                )
+                # dbc.Col(
+                #     dcc.Graph(
+                #         id="output_graph_TM",
+                #         figure={},
+                #         style={"box-shadow": "6px 6px 6px lightgrey"},
+                #     ),
+                #     width={"size": 4},
+                # ),
+                # dbc.Col(
+                #     dcc.Graph(
+                #         id="output_graph_TE",
+                #         figure={},
+                #         style={"box-shadow": "6px 6px 6px lightgrey"},
+                #     ),
+                #     width={"size": 4},
+                # ),
             ]
         )
     ]

@@ -1,5 +1,4 @@
 import os
-
 import numpy as np
 import pandas as pd
 from scipy.constants import epsilon_0 as eps0, mu_0 as mu0
@@ -19,7 +18,9 @@ def permittivity(ground_type, freqMHz: float):
     OUTPUTS:
         eps__r, sigma (eps__i)
     """
-    df_soil = pd.read_csv(os.path.join("data", "soil.csv"))
+    csv_file = os.path.join("Dash","data","soil.csv")
+    # df_soil = pd.read_csv(os.path.join("data", "soil.csv"))
+    df_soil = pd.read_csv(csv_file)
     P_Sand = df_soil[df_soil["Type"] == ground_type]["Sand"].iloc[0]
     P_Clay = df_soil[df_soil["Type"] == ground_type]["Clay"].iloc[0]
     P_Silt = df_soil[df_soil["Type"] == ground_type]["Silt"].iloc[0]
