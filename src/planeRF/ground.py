@@ -5,34 +5,35 @@ import numpy as np
 import pandas as pd
 from scipy.constants import epsilon_0 as eps0, mu_0 as mu0
 
+# PARAMETERS
+SOIL = pd.read_csv(os.path.join("Dash","data","soil.csv"))
 
-__all__ = ["compute_power_density", "sagnd", "compute_ns", "permittivity"]
+__all__ = ["compute_power_density", "sagnd", "compute_ns", "soil_dielectrics"]
 
 
-def permittivity(ground_type, freqMHz: float):
+def soil_dielectrics(ground_type: str, fMHz: float):
     """
+    Calculates dielectric values (εr, σ) of wet or dry soil at nominated frequency
+    & temperature (T) soil_dielectrics in SOIL dataframe in accordance with ITU-R P.527-6
     INPUTS:
-        ground_type: PEC Ground, Wet Soil, Dry Soil
-        freqMHz: Frequency in MHz
+        SOIL: external dataframe containing parameters of wet or dry soil types
+        ground_type: [Wet Soil, Dry Soil]
+        fMHz: Frequency in MHz
+    INTERMEDIATE VARIABLES:    
         P_Sand, P_Clay, P_Silt, Pb, Ps, mv Parameters from ITU-R P.527-6 Fig.14 and Fig.16
         T = 23 Celsius
         mv = 0.5 for wet soil; mv = 0.07 for dry soil
     OUTPUTS:
-        eps__r, sigma (eps__i)
+        eps__r, sigma
     """
-    csv_file = os.path.join("Dash","data","soil.csv")
-    # df_soil = pd.read_csv(os.path.join("data", "soil.csv"))
-    df_soil = pd.read_csv(csv_file)
-    P_Sand = df_soil[df_soil["Type"] == ground_type]["Sand"].iloc[0]
-    P_Clay = df_soil[df_soil["Type"] == ground_type]["Clay"].iloc[0]
-    P_Silt = df_soil[df_soil["Type"] == ground_type]["Silt"].iloc[0]
-    Ps = df_soil[df_soil["Type"] == ground_type]["Ps"].iloc[0]
-    Pb = df_soil[df_soil["Type"] == ground_type]["Pb"].iloc[0]
-    T = df_soil[df_soil["Type"] == ground_type]["T"].iloc[0]
-    mv = df_soil[df_soil["Type"] == ground_type]["mv"].iloc[0]
+    # Extract soil parameters for specified ground type
+    soil = SOIL[SOIL.Type == ground_type].values[0]
+    soil_type, P_Sand, P_Clay, P_Silt, Ps, Pb, T, mv = soil    
 
-    fGHz = freqMHz / 1000
+    # Calculate frequency in GHz
+    fGHz = fMHz / 1000
 
+    # Calculate dielectric equation parameters
     sigma_1 = (
         0.0467 + 0.2204 * Pb - 0.004111 * P_Sand - 0.006614 * P_Clay
     )  # eq(69)
@@ -55,8 +56,9 @@ def permittivity(ground_type, freqMHz: float):
     f1 = 20.20 - 146.4 * Θ + 316 * Θ**2  # eq(12)
     f2 = 39.8 * f1  # eq(13)
 
-    # eps_fw_r and eps_fw_i are the real and the imaginary parts of the complex relative permittivity of free water
-
+    # Calculate soil dielectric values
+    # eps_fw_r and eps_fw_i are the real and the imaginary parts 
+    # of the complex relative permittivity of free water
     eps_fw_r = (
         (eps_s - eps_1) / (1 + (fGHz / f1) ** 2)
         + (eps_1 - eps_inf) / (1 + (fGHz / f2) ** 2)
@@ -239,11 +241,11 @@ def compute_power_density(ground_type, S0, freqMHz, theta, pol, z):
         epsr = [1, 10]
         sigma = [0, 1e6]  # PEC Ground, lossless
     elif ground_type == "Wet Soil":
-        er, sigma_i = permittivity(ground_type, freqMHz)
+        er, sigma_i = soil_dielectrics(ground_type, freqMHz)
         epsr = [1, er]
         sigma = [0, sigma_i]  # wet soil
     elif ground_type == "Dry Soil":
-        er, sigma_i = permittivity(ground_type, freqMHz)
+        er, sigma_i = soil_dielectrics(ground_type, freqMHz)
         epsr = [1, er]
         sigma = [0, sigma_i]  # Dry soil
 
