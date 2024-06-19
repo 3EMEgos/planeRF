@@ -1,20 +1,20 @@
-# Dash code for the "Ground Reflection" page
+# Support code for the "Ground Reflection" Dash page
  
 import os
 import numpy as np
 import pandas as pd
 from scipy.constants import epsilon_0 as eps0, mu_0 as mu0
 
+__all__ = ["compute_power_density", "sagnd", "compute_ns", "soil_dielectrics"]
+
 # PARAMETERS
 SOIL = pd.read_csv(os.path.join("Dash","data","soil.csv"))
 
-__all__ = ["compute_power_density", "sagnd", "compute_ns", "soil_dielectrics"]
-
-
 def soil_dielectrics(ground_type: str, fMHz: float):
     """
-    Calculates dielectric values (εr, σ) of wet or dry soil at nominated frequency
-    & temperature (T) soil_dielectrics in SOIL dataframe in accordance with ITU-R P.527-6
+    Calculates the complex dielectric value (ε'-jε") and conductivity (σ) of 
+    wet or dry soil (silty loam) at nominated frequency (fMHz) and 
+    temperature (T=23°C) indicated in the SOIL dataframe in accordance with ITU-R P.527-6
     INPUTS:
         SOIL: external dataframe containing parameters of wet or dry soil types
         ground_type: [Wet Soil, Dry Soil]
@@ -24,7 +24,7 @@ def soil_dielectrics(ground_type: str, fMHz: float):
         T = 23 Celsius
         mv = 0.5 for wet soil; mv = 0.07 for dry soil
     OUTPUTS:
-        eps__r, sigma
+        eps__r, eps__i, sigma
     """
     # Extract soil parameters for specified ground type
     soil = SOIL[SOIL.Type == ground_type].values[0]
@@ -83,7 +83,7 @@ def soil_dielectrics(ground_type: str, fMHz: float):
     eps__i = ((mv**β_i) * (eps_fw_i**α)) ** (1 / α)
     sigma = 0.05563 * fGHz * eps__i  # eq(3a)
 
-    return eps__r, sigma
+    return eps__r, eps__i, sigma
 
 
 def compute_ns(freqMHz: float, L: float):
@@ -184,7 +184,7 @@ def sagnd(kind: str, n: int, L: float):
     return z, w
 
 
-def compute_power_density(ground_type, S0, freqMHz, theta, pol, z):
+def compute_power_density(ground_type, S0, fMHz, theta, pol, z):
     """Calculate the plane wave equivalent power density levels of E & H above ground
     for a plane wave in air that is obliquely incident on a PEC or real ground
 
@@ -232,7 +232,7 @@ def compute_power_density(ground_type, S0, freqMHz, theta, pol, z):
     zi = [0]  # interface level between layer 1 (air) and 2 (ground)
     zi.append(1e9)  # add a very large z value to act as infinity
     mur = [1, 1]  # relative permeability of layers 1 and 2
-    w = 2.0 * np.pi * freqMHz * 1e6  # angular frequency
+    w = 2.0 * np.pi * fMHz * 1e6  # angular frequency
     theta = np.deg2rad(theta)  # convert theta from degrees to radians
     E0 = np.sqrt(2 * S0 * Z0)  # calculate peak E-field level of S0
 
@@ -241,11 +241,11 @@ def compute_power_density(ground_type, S0, freqMHz, theta, pol, z):
         epsr = [1, 10]
         sigma = [0, 1e6]  # PEC Ground, lossless
     elif ground_type == "Wet Soil":
-        er, sigma_i = soil_dielectrics(ground_type, freqMHz)
+        er, ei, sigma_i = soil_dielectrics(ground_type, fMHz)
         epsr = [1, er]
         sigma = [0, sigma_i]  # wet soil
     elif ground_type == "Dry Soil":
-        er, sigma_i = soil_dielectrics(ground_type, freqMHz)
+        er, ei, sigma_i = soil_dielectrics(ground_type, fMHz)
         epsr = [1, er]
         sigma = [0, sigma_i]  # Dry soil
 
