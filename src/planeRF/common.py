@@ -5,7 +5,8 @@ import numpy as np
 import pandas as pd
 from scipy.constants import epsilon_0 as eps0, mu_0 as mu0
 
-__all__ = ["compute_power_density", "sagnd", "compute_ns", "soil_dielectrics"]
+__all__ = ["compute_power_density", "sagnd", "compute_ns", "soil_dielectrics",
+           "ground_dielectrics"]
 
 # PARAMETERS
 SOIL = pd.read_csv(os.path.join("Dash","data","soil.csv"))
@@ -17,8 +18,8 @@ def soil_dielectrics(ground_type: str, fMHz: float):
     temperature (T=23°C) indicated in the SOIL dataframe in accordance with ITU-R P.527-6
     INPUTS:
         SOIL: external dataframe containing parameters of wet or dry soil types
-        ground_type: [Wet Soil, Dry Soil]
-        fMHz: Frequency in MHz
+        ground_type: type of ground (PEC, Wet Soil or Dry Soil)
+        fMHz: exposure frequency in MHz
     INTERMEDIATE VARIABLES:    
         P_Sand, P_Clay, P_Silt, Pb, Ps, mv Parameters from ITU-R P.527-6 Fig.14 and Fig.16
         T = 23 Celsius
@@ -86,6 +87,31 @@ def soil_dielectrics(ground_type: str, fMHz: float):
     return eps__r, eps__i, sigma
 
 
+def ground_dielectrics(ground_type: str, fMHz: float):
+    '''
+    Calculate the dielectric properties of the ground
+    INPUTS:
+        ground_type = type of ground (PEC, Wet Soil or Dry Soil)
+        fMHz = exposure frequency in MHz
+    OUTPUTS:
+        epsr = real part of complex permittivity
+        sigma = conductivity
+    '''
+
+    match ground_type:
+        case 'PEC Ground':  # PEC Ground, lossless
+            epsr = [1, 10]
+            sigma = [0, 1e6]
+        case "Wet Soil" | "Dry Soil":  # Wet or Dry Soil
+            er, ei, sigma_i = soil_dielectrics(ground_type, fMHz)
+            epsr = [1, er]
+            sigma = [0, sigma_i]
+        case _:
+            raise ValueError(f'unknown ground_type ({ground_type} has been specified)')
+        
+    return epsr, sigma
+
+            
 def compute_ns(freqMHz: float, L: float):
     """
     INPUTS:
@@ -184,7 +210,8 @@ def sagnd(kind: str, n: int, L: float):
     return z, w
 
 
-def compute_power_density(ground_type, S0, fMHz, theta, pol, z):
+def compute_power_density(ground_type: str, S0: float, fMHz: float, 
+                          theta: float, pol: str, z):
     """Calculate the plane wave equivalent power density levels of E & H above ground
     for a plane wave in air that is obliquely incident on a PEC or real ground
 
@@ -220,8 +247,6 @@ def compute_power_density(ground_type, S0, fMHz, theta, pol, z):
     developed by Kimmo Karkkainen.
     """
     # Data input checks
-    GROUNDS = ('PEC Ground', 'Wet Soil', 'Dry Soil')
-    assert ground_type in GROUNDS, f'ground_type ({ground_type}) must be in {GROUNDS}'
     POLS = ('TE','TM')
     assert pol in POLS, f'pol ({pol}) must be in {POLS}'
     assert 0 <= theta <= 90, f'theta ({theta}) must be within range of 0° to 90°'
@@ -237,17 +262,7 @@ def compute_power_density(ground_type, S0, fMHz, theta, pol, z):
     E0 = np.sqrt(2 * S0 * Z0)  # calculate peak E-field level of S0
 
     # Set permittivity and conductivity of ground
-    if ground_type == "PEC Ground":
-        epsr = [1, 10]
-        sigma = [0, 1e6]  # PEC Ground, lossless
-    elif ground_type == "Wet Soil":
-        er, ei, sigma_i = soil_dielectrics(ground_type, fMHz)
-        epsr = [1, er]
-        sigma = [0, sigma_i]  # wet soil
-    elif ground_type == "Dry Soil":
-        er, ei, sigma_i = soil_dielectrics(ground_type, fMHz)
-        epsr = [1, er]
-        sigma = [0, sigma_i]  # Dry soil
+    epsr, sigma = ground_dielectrics(ground_type, fMHz)
 
     # wavenumber
     eps = [er * eps0 + s / (1j * w) for er, s in zip(epsr, sigma)]
