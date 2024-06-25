@@ -3,6 +3,7 @@
 import os
 import numpy as np
 import pandas as pd
+from typing import List, Tuple
 from scipy.constants import epsilon_0 as eps0, mu_0 as mu0
 
 __all__ = ["compute_power_density", "sagnd", "compute_ns", "soil_dielectrics",
@@ -11,22 +12,32 @@ __all__ = ["compute_power_density", "sagnd", "compute_ns", "soil_dielectrics",
 # PARAMETERS
 SOIL = pd.read_csv(os.path.join("Dash","data","soil.csv"))
 
-def soil_dielectrics(ground_type: str, fMHz: float):
+def soil_dielectrics(SOIL: pd.DataFrame,
+                     ground_type: str,
+                     fMHz: float | int
+                     ) -> Tuple[float]:
     """
     Calculates the complex dielectric value (ε'-jε") and conductivity (σ) of 
-    wet or dry soil (silty loam) at nominated frequency (fMHz) and 
+    wet or dry soil (silty loam) at nominated frequency (fMHz) and the
     temperature (T=23°C) indicated in the SOIL dataframe in accordance with ITU-R P.527-6
-    INPUTS:
+
+    Parameters
+    ----------
         SOIL: external dataframe containing parameters of wet or dry soil types
         ground_type: type of ground (PEC, Wet Soil or Dry Soil)
         fMHz: exposure frequency in MHz
-    INTERMEDIATE VARIABLES:    
+    Returns
+    -------
+        eps__r: Real part of the soil complex permiitivity
+        eps__i: Imaginary part of the soil complex permittivity
+        sigma: Conductivity (S/m) of the soil
+    Notes
+    -----    
         P_Sand, P_Clay, P_Silt, Pb, Ps, mv Parameters from ITU-R P.527-6 Fig.14 and Fig.16
         T = 23 Celsius
         mv = 0.5 for wet soil; mv = 0.07 for dry soil
-    OUTPUTS:
-        eps__r, eps__i, sigma
     """
+    
     # Extract soil parameters for specified ground type
     soil = SOIL[SOIL.Type == ground_type].values[0]
     soil_type, P_Sand, P_Clay, P_Silt, Ps, Pb, T, mv = soil    
@@ -87,13 +98,17 @@ def soil_dielectrics(ground_type: str, fMHz: float):
     return eps__r, eps__i, sigma
 
 
-def ground_dielectrics(ground_type: str, fMHz: float):
+def ground_dielectrics(ground_type: str,
+                       fMHz: float
+                       ) -> Tuple[List[float]]:
     '''
     Calculate the dielectric properties of the ground
-    INPUTS:
+    Parameters
+    ----------
         ground_type = type of ground (PEC, Wet Soil or Dry Soil)
         fMHz = exposure frequency in MHz
-    OUTPUTS:
+    Returns
+    -------
         epsr = real part of complex permittivity
         sigma = conductivity
     '''
@@ -101,26 +116,45 @@ def ground_dielectrics(ground_type: str, fMHz: float):
     match ground_type:
         case 'PEC Ground':  # PEC Ground, lossless
             epsr = [1, 10]
-            sigma = [0, 1e6]
+            sigma = [0, 1e12]
         case "Wet Soil" | "Dry Soil":  # Wet or Dry Soil
-            er, ei, sigma_i = soil_dielectrics(ground_type, fMHz)
+            er, ei, sigma_i = soil_dielectrics(SOIL, ground_type, fMHz)
             epsr = [1, er]
             sigma = [0, sigma_i]
+        case "Medium Dry Ground":  # From Fig.1 of ITU-R P.527-3 report
+            epsr = [1, 15.2]
+            sigma_dic = {30:  1e-3,
+                         60:  1.3e-3,
+                         100: 1.8e-3,
+                         300: 6.3e-3,
+                         600: 1.68e-2,
+                         1000:3.7e-2,
+                         3000:2.45e-1}
+            try:
+                sig2 = sigma_dic[fMHz]
+            except:
+                raise KeyError(f'unspecified frequency ({fMHz} MHz) in sigma_dic for Medium Dry Ground')
+
+            sigma = [0, sig2]
         case _:
-            raise ValueError(f'unknown ground_type ({ground_type} has been specified)')
+            raise ValueError(f'unknown ground_type ({ground_type}) has been specified)')
         
     return epsr, sigma
 
             
-def compute_ns(freqMHz: float, L: float):
+def compute_ns(freqMHz: float | int,
+               L: float | int
+               ) -> int:
     """
-    INPUTS:
-        freqMHz = Frequency in MHz
-        L = Height of Human Body in meters
-    OUTPUTS:
-        ns = number of sampling points/plotting points. Make ns as even number
-        Assume at least 8 points to plot a reasonable smooth curve.
-        The standing wave has twice the frequency than the frequency of interest.
+    Parameters
+    ----------
+        freqMHz: Frequency in MHz
+        L: Height of Human Body in meters
+    Returns
+    -------
+        ns: Number of sampling points/plotting points. Make ns as even number
+            Assume at least 8 points to plot a reasonable smooth curve.
+            The standing wave has twice the frequency than the frequency of interest.
     """
 
     Ns = max(200, int(np.round((8 * L * 2) / (300 / freqMHz))))
@@ -129,16 +163,23 @@ def compute_ns(freqMHz: float, L: float):
     return Ns
 
 
-def sagnd(kind: str, n: int, L: float):
-    """Calculate height (z) and weighting (w) of spatial averaging points
+def sagnd(kind: str, 
+          n: int, 
+          L: float | int
+          ) -> Tuple[np.ndarray[float]]:
+    """
+    Calculate height (z) and weighting (w) of spatial averaging points
     for various schemes over ground
-    INPUTS:
-      kind = spatial averaging scheme ('ps','simple', 'RS', 'S13', 'S38', 'GQR')
-      n = number of spatial averaging points
-      L = spatial averaging length, or height of point for 'ps' case
-    OUTPUTS:
-      z = np array of spatial avg assessment point heights (z=0 at ground level)
-      w = np array of assessment point weights
+    Parameters
+    ----------
+        kind: {'ps','simple', 'RS', 'S13', 'S38', 'GQR'}
+          Spatial averaging scheme 
+        n: Number of spatial averaging points
+        L: Spatial averaging length, or height of point for 'ps' case
+    Returns
+    -------
+        z: Spatial avg assessment point heights (z=0 at ground level)
+        w: Spatial avg assessment point weights
     """
 
     # Assertion tests on input data
@@ -210,34 +251,35 @@ def sagnd(kind: str, n: int, L: float):
     return z, w
 
 
-def compute_power_density(ground_type: str, S0: float, fMHz: float, 
-                          theta: float, pol: str, z):
-    """Calculate the plane wave equivalent power density levels of E & H above ground
+def compute_power_density(ground_type: str, 
+                          S0: float | int, 
+                          fMHz: float | int, 
+                          theta: float | int, 
+                          pol: str, z
+                          ) -> Tuple[np.ndarray[float]]:
+    """
+    Calculate the plane wave equivalent power density levels of E & H above ground
     for a plane wave in air that is obliquely incident on a PEC or real ground
 
     Parameters
     ----------
-    ground_type : {'PEC Ground', 'Wet Soil', 'Dry Soil'}
-        Type of ground
-    S0 : float
-        Power flux density of the incident plane wave in W/m²
-    freqMHz : float
-        Frequency of the plane wave in MHz.
-    theta : float
-        Angle of incidence in degrees of the plane wave, i.e. incoming angle of the 
-        propagation vector (k) relative to the normal of the first interface.
-    pol : {'TM', 'TE'}
-        Polarization of the plane wave.
-        'TM' = Transverse Magnetic polarization (H parallel to interface)
-        'TE' = Transverse Electric polarization (E parallel to interface)
-    z : numpy float array
-        height of points above ground in m. Note that ground level is 0 and
-        increasing heights above ground are -ve
+        ground_type: {'PEC Ground', 'Wet Soil', 'Dry Soil', 'Medium Dry Ground'}
+          Type of ground
+        S0: Power flux density of the incident plane wave in W/m²
+        fMHz: Frequency of the plane wave in MHz.
+        theta: Angle of incidence in degrees of the plane wave, i.e. incoming angle
+               of the propagation vector (k) relative to the normal of the first interface.
+        pol: {'TM', 'TE'}
+          Polarization of the plane wave.
+          'TM' = Transverse Magnetic polarization (H parallel to interface)
+          'TE' = Transverse Electric polarization (E parallel to interface)
+        z : Height of points above ground in m. Note that ground level is 0 and
+          increasing heights above ground are -ve
 
     Returns
     -------
-    tuple : (SH, SE)
-        Equivalent power density levels for H and E calculated at z heights
+        SH: Equivalent power density levels for H at z heights
+        SE: Equivalent power density levels for E at z heights
 
     Notes
     -----
