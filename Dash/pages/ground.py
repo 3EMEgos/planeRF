@@ -20,7 +20,7 @@ from planeRF import compute_S_params, compute_power_density, sagnd, compute_ns
         Input("angle_input", "value"),
     ],
 )
-def update_graph_TM(
+def update_graph(
     gnd, S0, fMHz, pol, sa_method, L, Nsap, theta
 ):
     if (
@@ -121,8 +121,9 @@ def update_graph_TM(
             )
 
             # Generate plot title
+            sigma[1] = round(sigma[1],10)  # round very small numbers to zero
             t1 = f'<b>{gnd}</b> '
-            t2 = f'<span style="font-size:12pt">(ε<sub>r</sub>={epsr[1]:0.2f}, σ={sigma[1]:0.3g} S/m)</span>'
+            t2 = f'<span style="font-size:12pt">(ε<sub>r</sub>={epsr[1]:0.2g}, σ={sigma[1]:0.3g} S/m)</span>'
             t3 = f'<b>{fMHz:g} MHz,  θ = {theta:g}°,  {pol} mode</b>'
             t4 = f'<span style="font-size:12pt">{sa_method} averaging for {Nsap} points over {L}m</span>'
             plot_title = t1 + t2 + '<br>' + t3 + '<br>' + t4 
@@ -133,11 +134,11 @@ def update_graph_TM(
                 title_x=0.5,
                 xaxis={
                     "title": "S (W/m²)",
-                    "range": [0,None],
+                    "range": [0,4.1*S0],
                 },
                 yaxis={
                     "title": "height above ground (m)",
-                    "range": [0,2],
+                    "range": [0,2.02],
                 },
                 width=350,
                 height=800,
@@ -190,7 +191,8 @@ Layout_Ground = html.Div(
                         dcc.RadioItems(
                             id="ground_radioitem",
                             options=[
-                                {"label": " PEC Ground", "value": "PEC Ground"},
+                                {"label": " No ground (Air)", "value": "Air"},
+                                {"label": " Metal (PEC) Ground", "value": "PEC Ground"},
                                 {"label": " Wet Soil", "value": "Wet Soil"},
                                 {"label": " Dry Soil", "value": "Dry Soil"},
                                 {"label": " Concrete", "value": "Concrete"},
@@ -229,7 +231,7 @@ Layout_Ground = html.Div(
                             placeholder="",
                             min=0.0,
                             max=90.0,  # limit the angle range from 0 to 90degs
-                            value=10,
+                            value=30,
                             style={"width": "40%"},
                         ),
                         html.Br(),

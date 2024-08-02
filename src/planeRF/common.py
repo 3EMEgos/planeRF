@@ -116,6 +116,9 @@ def ground_dielectrics(ground_type: str,
     '''
 
     match ground_type:
+        case 'Air':
+            epsr = [1, 1]
+            sigma = [0, 1e-12]
         case 'PEC Ground': 
             # PEC Ground, lossless
             epsr = [1, 10]
