@@ -1,25 +1,32 @@
 # Support code for the "Ground Reflection" Dash page
- 
+
 import os
 import numpy as np
 import pandas as pd
 from typing import List, Tuple
 from scipy.constants import epsilon_0 as eps0, mu_0 as mu0
+from scipy.interpolate import interp1d
 
-__all__ = ["compute_S_params", "compute_power_density", "sagnd", "compute_ns",
-           "soil_dielectrics", "ground_dielectrics"]
+__all__ = [
+    "compute_S_params",
+    "compute_power_density",
+    "sagnd",
+    "compute_ns",
+    "soil_dielectrics",
+    "ground_dielectrics",
+]
 
 # PARAMETERS
-SOIL = pd.read_csv(os.path.join("Dash","data","soil.csv"))
+SOIL = pd.read_csv(os.path.join("Dash", "data", "soil.csv"))
 
 # FUNCTIONS
 
-def soil_dielectrics(SOIL: pd.DataFrame,
-                     ground_type: str,
-                     fMHz: float | int
-                     ) -> Tuple[float]:
+
+def soil_dielectrics(
+    SOIL: pd.DataFrame, ground_type: str, fMHz: float | int
+) -> Tuple[float]:
     """
-    Calculates the complex dielectric value (ε'-jε") and conductivity (σ) of 
+    Calculates the complex dielectric value (ε'-jε") and conductivity (σ) of
     wet or dry soil (silty loam) at nominated frequency (fMHz) and the
     temperature (T=23°C) indicated in the SOIL dataframe in accordance with ITU-R P.527-6
 
@@ -34,7 +41,7 @@ def soil_dielectrics(SOIL: pd.DataFrame,
         eps__i: Imaginary part of the soil complex permittivity
         sigma: Conductivity (S/m) of the soil
     Notes
-    -----    
+    -----
         P_Sand, P_Clay, P_Silt, Pb, Ps, mv Parameters from ITU-R P.527-6 Fig.14 and Fig.16
         T = 23 Celsius
         mv = 0.5 for wet soil; mv = 0.07 for dry soil
@@ -42,25 +49,19 @@ def soil_dielectrics(SOIL: pd.DataFrame,
 
     # Extract soil parameters for specified ground type
     soil = SOIL[SOIL.Type == ground_type].values[0]
-    soil_type, P_Sand, P_Clay, P_Silt, Ps, Pb, T, mv = soil    
+    soil_type, P_Sand, P_Clay, P_Silt, Ps, Pb, T, mv = soil
 
     # Calculate frequency in GHz
     fGHz = fMHz / 1000
 
     # Calculate dielectric equation parameters
-    sigma_1 = (
-        0.0467 + 0.2204 * Pb - 0.004111 * P_Sand - 0.006614 * P_Clay
-    )  # eq(69)
-    sigma_2 = (
-        -1.645 + 1.939 * Pb - 0.0225622 * P_Sand + 0.01594 * P_Clay
-    )  # eq(70)
+    sigma_1 = 0.0467 + 0.2204 * Pb - 0.004111 * P_Sand - 0.006614 * P_Clay  # eq(69)
+    sigma_2 = -1.645 + 1.939 * Pb - 0.0225622 * P_Sand + 0.01594 * P_Clay  # eq(70)
 
     sigma_eff_r = (fGHz / 1.35) * (
         (sigma_1 - sigma_2) / (1 + (fGHz / 1.35) ** 2)
     )  # eq(67)
-    sigma_eff_i = sigma_2 + (
-        (sigma_1 - sigma_2) / (1 + (fGHz / 1.35) ** 2)
-    )  # eq(68)
+    sigma_eff_i = sigma_2 + ((sigma_1 - sigma_2) / (1 + (fGHz / 1.35) ** 2))  # eq(68)
 
     Θ = 300 / (T + 273.15) - 1  # eq(11)
     eps_s = 77.66 + 103.3 * Θ  # eq(8)
@@ -71,7 +72,7 @@ def soil_dielectrics(SOIL: pd.DataFrame,
     f2 = 39.8 * f1  # eq(13)
 
     # Calculate soil dielectric values
-    # eps_fw_r and eps_fw_i are the real and the imaginary parts 
+    # eps_fw_r and eps_fw_i are the real and the imaginary parts
     # of the complex relative permittivity of free water
     eps_fw_r = (
         (eps_s - eps_1) / (1 + (fGHz / f1) ** 2)
@@ -100,34 +101,32 @@ def soil_dielectrics(SOIL: pd.DataFrame,
     return eps__r, eps__i, sigma
 
 
-def ground_dielectrics(ground_type: str,
-                       fMHz: float
-                       ) -> Tuple[List[float]]:
-    '''
+def ground_dielectrics(ground_type: str, fMHz: float) -> Tuple[List[float]]:
+    """
     Calculate the dielectric properties of the ground
     Parameters
     ----------
-        ground_type = type of ground (PEC, Wet Soil or Dry Soil)
+        ground_type = type of ground (PEC, Wet Soil, Medium Dry Ground, Dry Soil or Concrete)
         fMHz = exposure frequency in MHz
     Returns
     -------
         epsr = real part of complex permittivity
         sigma = conductivity
-    '''
+    """
 
     match ground_type:
-        case 'Air':
+        case "Air":
             epsr = [1, 1]
             sigma = [0, 1e-12]
-        case 'PEC Ground': 
+        case "PEC Ground":
             # PEC Ground, lossless
             epsr = [1, 10]
             sigma = [0, 1e12]
-        case 'Concrete': 
+        case "Concrete":
             # from pp. 23-24 of ITU-R P.2040-3
             # Only valid for 1-100 GHz
             er = 5.24
-            sig = 0.0462 * (fMHz/1000)**0.7822
+            sig = 0.0462 * (fMHz / 1000) ** 0.7822
             epsr = [1, er]
             sigma = [0, sig]
         case "Wet Soil" | "Dry Soil":
@@ -136,30 +135,30 @@ def ground_dielectrics(ground_type: str,
             epsr = [1, er]
             sigma = [0, sigma_i]
         case "Medium Dry Ground":
-            # From Fig.1 of ITU-R P.527-3 report (use for unit testing)
-            epsr = [1, 15.2]
-            sigma_dic = {30:  1e-3,
-                         60:  1.3e-3,
-                         100: 1.8e-3,
-                         300: 6.3e-3,
-                         600: 1.68e-2,
-                         1000:3.7e-2,
-                         3000:2.45e-1}
-            try:
-                sig2 = sigma_dic[fMHz]
-            except:
-                raise KeyError(f'unspecified frequency ({fMHz} MHz) in sigma_dic for Medium Dry Ground')
+            # interpolation data from Fig.1 of ITU-R P.527-3 report (use for unit testing)
+            fMHz_mds = [1, 10, 30, 60, 100, 300, 600, 1000, 3000, 6000]
+            er_mds = [15.2, 15.2, 15.2, 15.2, 15.2, 15.2, 15.2, 15.2, 15.2, 14.3]
+            sigma_mds = [
+                0.001,
+                0.001,
+                0.001,
+                0.0013,
+                0.0018,
+                0.0063,
+                0.0168,
+                0.037,
+                0.245,
+                0.79,
+            ]
+            fn_er_mds = interp1d(fMHz_mds, er_mds, kind="quadratic")
+            fn_sigma_mds = interp1d(fMHz_mds, sigma_mds, kind="quadratic")
+            epsr = [1, float(fn_er_mds(fMHz))]
+            sigma = [0, float(fn_sigma_mds(fMHz))]
 
-            sigma = [0, sig2]
-        case _:
-            raise ValueError(f'unknown ground_type ({ground_type}) has been specified)')
-        
     return epsr, sigma
 
-            
-def compute_ns(fMHz: float | int,
-               L: float | int
-               ) -> int:
+
+def compute_ns(fMHz: float | int, L: float | int) -> int:
     """
     Parameters
     ----------
@@ -178,17 +177,14 @@ def compute_ns(fMHz: float | int,
     return Ns
 
 
-def sagnd(kind: str, 
-          n: int, 
-          L: float | int
-          ) -> Tuple[np.ndarray[float]]:
+def sagnd(kind: str, n: int, L: float | int) -> Tuple[np.ndarray[float]]:
     """
     Calculate height (z) and weighting (w) of spatial averaging points
     for various schemes over ground
     Parameters
     ----------
         kind: {'ps','Simple', 'RS', 'S13', 'S38', 'GQR'}
-          Spatial averaging scheme 
+          Spatial averaging scheme
         n: Number of spatial averaging points
         L: Spatial averaging length, or height of point for 'ps' case
     Returns
@@ -206,70 +202,73 @@ def sagnd(kind: str,
 
     # Select case for spatial averaging scheme
     # << Need to make z values in the -ve axis >>
-    match kind:          
-        case 'PS':
+    match kind:
+        case "PS":
             # point spatial
             z = np.array([L])
             w = np.array([1])
-          
-        case 'Simple':
+
+        case "Simple":
             # Simple average
             if n < 2:
-                n = 2                
-            z = np.linspace(0,L,n)
+                n = 2
+            z = np.linspace(0, L, n)
             w = np.ones(n) / n
-          
-        case 'RS':
+
+        case "RS":
             # Riemman Sum averaging
             if n < 2:
                 n = 2
             dz = L / n
-            z = np.linspace(dz/2,L-dz/2,n)
+            z = np.linspace(dz / 2, L - dz / 2, n)
             w = np.ones(n) / n
-          
-        case 'GQR':
+
+        case "GQR":
             # Gaussian Legendre Quadrature Rule
             z, w = np.polynomial.legendre.leggauss(n)
-            z = (z + 1) * L/2
+            z = (z + 1) * L / 2
             w = w / 2
-          
-        case 'S13':
+
+        case "S13":
             # Simpsons 1/3 rule
             if n < 3:
                 n = 3
-            if n%2 == 0:
+            if n % 2 == 0:
                 n += 1
-            z = np.linspace(0,L,n)
+            z = np.linspace(0, L, n)
             w = np.ones(n)
-            wts = [4,2]*300  # a pop list for the weights
-            for i in range(n-2):
-                w[i+1] = wts.pop(0)
+            wts = [4, 2] * 300  # a pop list for the weights
+            for i in range(n - 2):
+                w[i + 1] = wts.pop(0)
             w = w / sum(w)
-          
-        case 'S38':
+
+        case "S38":
             # Simpsons 3/8 Rule
             if n < 4:
                 n = 4
-            while (n-1)%3 != 0: # number of intervals (n-1) must be odd
+            while (n - 1) % 3 != 0:  # number of intervals (n-1) must be odd
                 n += 1
-            z = np.linspace(0,L,n)
+            z = np.linspace(0, L, n)
             w = np.ones(n)
-            wts = [3,3,2]*300  # a pop list for the weights
-            for i in range(n-2):
-                w[i+1] = wts.pop(0)
+            wts = [3, 3, 2] * 300  # a pop list for the weights
+            for i in range(n - 2):
+                w[i + 1] = wts.pop(0)
             w = w / sum(w)
 
-    if z[0] == 0: z[0] = 1e-12  # ensure first z value is non-zero
+    if z[0] == 0:
+        z[0] = 1e-12  # ensure first z value is non-zero
 
     return -z, w, n
 
-def compute_power_density_old(ground_type: str, 
-                          S0: float | int, 
-                          fMHz: float | int, 
-                          theta: float | int, 
-                          pol: str, 
-                          z: np.ndarray[float]
-                          ) -> Tuple[np.ndarray[float]]:
+
+def compute_power_density_old(
+    ground_type: str,
+    S0: float | int,
+    fMHz: float | int,
+    theta: float | int,
+    pol: str,
+    z: np.ndarray[float],
+) -> Tuple[np.ndarray[float]]:
     """
     Calculate the plane wave equivalent power density levels of E & H above ground
     for a plane wave in air that is obliquely incident on a PEC or real ground
@@ -302,9 +301,9 @@ def compute_power_density_old(ground_type: str,
     developed by Kimmo Karkkainen.
     """
     # Data input checks
-    POLS = ('TE','TM')
-    assert pol in POLS, f'pol ({pol}) must be in {POLS}'
-    assert 0 <= theta <= 90, f'theta ({theta}) must be within range of 0° to 90°'
+    POLS = ("TE", "TM")
+    assert pol in POLS, f"pol ({pol}) must be in {POLS}"
+    assert 0 <= theta <= 90, f"theta ({theta}) must be within range of 0° to 90°"
 
     # initialize settings
     N = 2  # number of layers
@@ -342,7 +341,7 @@ def compute_power_density_old(ground_type: str,
         if pol == "TM":  # reflection coefficient for the H field
             e1, e2 = eps[k + 1] * Kz[k], eps[k] * Kz[k + 1]
             R[k, k + 1] = (e1 - e2) / (e1 + e2)
-        else:            # reflection coefficient for the E field
+        else:  # reflection coefficient for the E field
             m1, m2 = mu[k + 1] * Kz[k], mu[k] * Kz[k + 1]
             R[k, k + 1] = (m1 - m2) / (m1 + m2)
         R[k + 1, k] = -R[k, k + 1]
@@ -367,12 +366,7 @@ def compute_power_density_old(ground_type: str,
             A[k - 1]
             * np.exp(-1j * Kz[k - 1] * zi[k - 1])
             * T[k - 1, k]
-            / (
-                1
-                - R[k, k - 1]
-                * gR[k]
-                * np.exp(-2 * 1j * Kz[k] * (zi[k] - zi[k - 1]))
-            )
+            / (1 - R[k, k - 1] * gR[k] * np.exp(-2 * 1j * Kz[k] * (zi[k] - zi[k - 1])))
             / np.exp(-1j * Kz[k] * zi[k - 1])
         )
 
@@ -407,11 +401,13 @@ def compute_power_density_old(ground_type: str,
 
     return SH, SE
 
-def compute_S_params(ground_type: str, 
-                     fMHz: float | int,
-                     theta: float | int,
-                     pol: str,
-                    ) -> Tuple[float | int | List[float] | np.ndarray[float]]:
+
+def compute_S_params(
+    ground_type: str,
+    fMHz: float | int,
+    theta: float | int,
+    pol: str,
+) -> Tuple[float | int | List[float] | np.ndarray[float]]:
     """
     Calculate the parameters to determine the plane wave equivalent power density levels
     of E & H above ground for a plane wave in air that is obliquely incident on a PEC or real ground
@@ -444,14 +440,17 @@ def compute_S_params(ground_type: str,
     developed by Kimmo Karkkainen.
     """
     # Data input checks
-    POLS = ('TE','TM')
-    assert pol in POLS, f'pol ({pol}) must be in {POLS}'
-    assert 0 <= theta <= 90, f'theta ({theta}) must be within range of 0° to 90°'
+    POLS = ("TE", "TM")
+    assert pol in POLS, f"pol ({pol}) must be in {POLS}"
+    assert 0 <= theta <= 90, f"theta ({theta}) must be within range of 0° to 90°"
 
     # initialize settings
     N = 2  # number of layers
     Z0 = np.sqrt(mu0 / eps0)  # free-space impedance
-    zi = [0, np.Infinity]   # z levels for material interfaces (air/ground, ground/infinity)
+    zi = [
+        0,
+        np.Infinity,
+    ]  # z levels for material interfaces (air/ground, ground/infinity)
     mur = [1, 1]  # relative permeability of layers 1 and 2
     w = 2.0 * np.pi * fMHz * 1e6  # angular frequency (rad/sec)
     theta = np.deg2rad(theta)  # convert theta from degrees to radians
@@ -482,7 +481,7 @@ def compute_S_params(ground_type: str,
         if pol == "TM":  # reflection coefficient for the H field
             e1, e2 = eps[k + 1] * Kz[k], eps[k] * Kz[k + 1]
             R[k, k + 1] = (e1 - e2) / (e1 + e2)
-        else:            # reflection coefficient for the E field
+        else:  # reflection coefficient for the E field
             m1, m2 = mu[k + 1] * Kz[k], mu[k] * Kz[k + 1]
             R[k, k + 1] = (m1 - m2) / (m1 + m2)
         R[k + 1, k] = -R[k, k + 1]
@@ -507,16 +506,11 @@ def compute_S_params(ground_type: str,
             A[k - 1]
             * np.exp(-1j * Kz[k - 1] * zi[k - 1])
             * T[k - 1, k]
-            / (
-                1
-                - R[k, k - 1]
-                * gR[k]
-                * np.exp(-2 * 1j * Kz[k] * (zi[k] - zi[k - 1]))
-            )
+            / (1 - R[k, k - 1] * gR[k] * np.exp(-2 * 1j * Kz[k] * (zi[k] - zi[k - 1])))
             / np.exp(-1j * Kz[k] * zi[k - 1])
         )
-    
-    return ((theta, pol, A, Kz, gR, zi),(epsr,sigma))
+
+    return ((theta, pol, A, Kz, gR, zi), (epsr, sigma))
 
 
 def compute_power_density(
@@ -527,10 +521,10 @@ def compute_power_density(
     A: np.ndarray[float],
     Kz: np.ndarray[float],
     gR: np.ndarray[float],
-    zi: List[float]
+    zi: List[float],
 ) -> Tuple[np.ndarray[float]]:
 
-    Z0 = 376.730313668           # free space impedance 
+    Z0 = 376.730313668  # free space impedance
 
     # form a vector that tells in which layer the calculation points are located
     zl = []

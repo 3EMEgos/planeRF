@@ -55,9 +55,7 @@ card_main2 = dbc.Card(
                     className="card-text",
                 ),
                 # dbc.Button("Press me", color="primary"),
-                dbc.CardLink(
-                    "Human Tissue SAR", href="/tissue", target="_blank"
-                ),
+                dbc.CardLink("Human Tissue SAR", href="/tissue", target="_blank"),
             ]
         ),
     ],

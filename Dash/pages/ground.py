@@ -15,14 +15,12 @@ from planeRF import compute_S_params, compute_power_density, sagnd, compute_ns
         Input("fMHz_input", "value"),
         Input("mode_radioitem", "value"),
         Input("sa_method_dpdn", "value"),
-        Input("L_input","value"),
-        Input("Nsap_input","value"),
+        Input("L_input", "value"),
+        Input("Nsap_input", "value"),
         Input("angle_input", "value"),
     ],
 )
-def update_graph(
-    gnd, S0, fMHz, pol, sa_method, L, Nsap, theta
-):
+def update_graph(gnd, S0, fMHz, pol, sa_method, L, Nsap, theta):
     if (
         gnd is not None
         and S0 is not None
@@ -39,33 +37,33 @@ def update_graph(
         S0 = float(S0)
         theta = float(theta)
         fMHz = float(fMHz)
-        S_params, (epsr, sigma) = compute_S_params(gnd,fMHz,theta,pol)
+        S_params, (epsr, sigma) = compute_S_params(gnd, fMHz, theta, pol)
 
         # Calculate S plot
-        Ns = compute_ns(fMHz, L)    # No. of S sampling points
+        Ns = compute_ns(fMHz, L)  # No. of S sampling points
         z = np.linspace(0, -2, Ns)  # z coords for sampling points
-        z[0] = -1E-12  # make the first z value slightly above zero
+        z[0] = -1e-12  # make the first z value slightly above zero
         result = compute_power_density(z, S0, *S_params)
         SH, SE = result
-        
+
         # Calculate spatial averaging points and averages
         # Note that compute_power_density can change Nsap if it is not valid for the spatial averaging method
         Zsap, Wsap, Nsap = sagnd(sa_method, Nsap, L)
         SHsap, SEsap = compute_power_density(Zsap, S0, *S_params)
         SHsa = np.dot(SHsap, Wsap)
         SEsa = np.dot(SEsap, Wsap)
-        
+
         # Calculate z & W for ACCURATE ESTIMATE of spatial averaging points
         Nsap_accurate = 200  # Set this to a very high number for good accuracy
-        sa_method_accurate = 'GQR'  # Use GQR for go0d accuracy
+        sa_method_accurate = "GQR"  # Use GQR for go0d accuracy
         Zsap_acc, Wsap_acc, Nsap_acc = sagnd(sa_method_accurate, Nsap_accurate, L)
         SHsap_acc, SEsap_acc = compute_power_density(Zsap_acc, S0, *S_params)
         SHsa_accurate = np.dot(SHsap_acc, Wsap_acc)
         SEsa_accurate = np.dot(SEsap_acc, Wsap_acc)
 
         # Calculate percentages of spatial average estimates to accurate estimates
-        SHsa_pc = (SHsa/SHsa_accurate) * 100.
-        SEsa_pc = (SEsa/SEsa_accurate) * 100.
+        SHsa_pc = (SHsa / SHsa_accurate) * 100.0
+        SEsa_pc = (SEsa / SEsa_accurate) * 100.0
 
         # Create the plot traces
         Y = np.linspace(0, 2, Ns)  # make z levels positive for plotting
@@ -85,48 +83,48 @@ def update_graph(
                 name="S<sub>H</sub>",
             )
             trace3_S0 = go.Scatter(
-                y=[0,2],
-                x=[S0,S0],
+                y=[0, 2],
+                x=[S0, S0],
                 mode="lines",
                 line=dict(color="#228833", width=1.5),  # green 228833
                 name=f"S<sub>0</sub> = {round(S0,2):g}",
             )
             trace4_SEsa = go.Scatter(
-                y=[0,2],
-                x=[SEsa,SEsa],
+                y=[0, 2],
+                x=[SEsa, SEsa],
                 mode="lines",
                 line=dict(color="#AA3377", width=1.5, dash="dashdot"),  # purple AA3377
                 name=f"S<sub>E sa</sub> = {round(SEsa,2):g}  ({SEsa_pc:0.1f}%)",
             )
             trace5_SHsa = go.Scatter(
-                y=[0,2],
-                x=[SHsa,SHsa],
+                y=[0, 2],
+                x=[SHsa, SHsa],
                 mode="lines",
                 line=dict(color="#4477AA", width=1.5, dash="dash"),  # blue 4477AA
                 name=f"S<sub>H sa</sub> = {round(SHsa,2):g}  ({SHsa_pc:0.1f}%)",
             )
-            trace5_SEsap =go.Scatter(
-                y = -Zsap,
-                x = SEsap,
-                mode = "markers",
-                marker = dict(color="#AA3377",size=8),  # purple AA3377
-                name = "S<sub>E</sub> spatial averaging points",
+            trace5_SEsap = go.Scatter(
+                y=-Zsap,
+                x=SEsap,
+                mode="markers",
+                marker=dict(color="#AA3377", size=8),  # purple AA3377
+                name="S<sub>E</sub> spatial averaging points",
             )
-            trace6_SHsap =go.Scatter(
-                y = -Zsap,
-                x = SHsap,
-                mode = "markers",
-                marker = dict(color="#4477AA",size=8),  # blue 4477AA
-                name = "S<sub>H</sub> spatial averaging points",
+            trace6_SHsap = go.Scatter(
+                y=-Zsap,
+                x=SHsap,
+                mode="markers",
+                marker=dict(color="#4477AA", size=8),  # blue 4477AA
+                name="S<sub>H</sub> spatial averaging points",
             )
 
             # Generate plot title
-            sigma[1] = round(sigma[1],10)  # round very small numbers to zero
-            t1 = f'<b>{gnd}</b> '
+            sigma[1] = round(sigma[1], 10)  # round very small numbers to zero
+            t1 = f"<b>{gnd}</b> "
             t2 = f'<span style="font-size:12pt">(ε<sub>r</sub>={epsr[1]:0.2g}, σ={sigma[1]:0.3g} S/m)</span>'
-            t3 = f'<b>{fMHz:g} MHz,  θ = {theta:g}°,  {pol} mode</b>'
+            t3 = f"<b>{fMHz:g} MHz,  θ = {theta:g}°,  {pol} mode</b>"
             t4 = f'<span style="font-size:12pt">{sa_method} averaging for {Nsap} points over {L}m</span>'
-            plot_title = t1 + t2 + '<br>' + t3 + '<br>' + t4 
+            plot_title = t1 + t2 + "<br>" + t3 + "<br>" + t4
 
             layout = go.Layout(
                 title=plot_title,
@@ -134,16 +132,15 @@ def update_graph(
                 title_x=0.5,
                 xaxis={
                     "title": "S (W/m²)",
-                    "range": [0,4.1*S0],
+                    "range": [0, 4.1 * S0],
                 },
                 yaxis={
                     "title": "height above ground (m)",
-                    "range": [0,2.02],
+                    "range": [0, 2.02],
                 },
                 width=350,
                 height=800,
-                legend={'yanchor':'top','y':-0.1,
-                        'xanchor':'center','x':0.5},
+                legend={"yanchor": "top", "y": -0.1, "xanchor": "center", "x": 0.5},
             )
 
             # Add plot traces to the figure
@@ -157,7 +154,7 @@ def update_graph(
             fig.add_trace(trace5_SHsa)
 
             return fig
-        
+
     elif S0 is None or theta is None or fMHz is None:
         raise dash.exceptions.PreventUpdate
 
@@ -179,22 +176,34 @@ Layout_Ground = html.Div(
                         # INPUT PARAMETERS HEADING
                         html.H4(
                             "Input Parameters",
-                            style={"color": "Teal", "font-weight": "bold", 
-                                   "font-size":18,"text-align":"center"}
+                            style={
+                                "color": "Teal",
+                                "font-weight": "bold",
+                                "font-size": 18,
+                                "text-align": "center",
+                            },
                         ),
                         html.Br(),
                         # GROUND TYPE INPUT
                         html.H6(
                             "Ground Type",
-                            style={"color": "Teal", "font-weight": "bold", "font-size":14},
+                            style={
+                                "color": "Teal",
+                                "font-weight": "bold",
+                                "font-size": 14,
+                            },
                         ),
                         dcc.RadioItems(
                             id="ground_radioitem",
                             options=[
                                 {"label": " No ground (Air)", "value": "Air"},
-                                {"label": " Metal (PEC) Ground", "value": "PEC Ground"},
-                                {"label": " Wet Soil", "value": "Wet Soil"},
-                                {"label": " Dry Soil", "value": "Dry Soil"},
+                                {"label": " Metal (PEC) ground", "value": "PEC Ground"},
+                                {"label": " Wet soil", "value": "Wet Soil"},
+                                {
+                                    "label": " Medium dry ground",
+                                    "value": "Medium Dry Ground",
+                                },
+                                {"label": " Dry soil", "value": "Dry Soil"},
                                 {"label": " Concrete", "value": "Concrete"},
                             ],
                             value="PEC Ground",
@@ -206,7 +215,11 @@ Layout_Ground = html.Div(
                             [
                                 "Incident power density, S₀ (W/m²)",
                             ],
-                            style={"color": "Teal", "font-weight": "bold", "font-size":14},
+                            style={
+                                "color": "Teal",
+                                "font-weight": "bold",
+                                "font-size": 14,
+                            },
                         ),
                         dcc.Input(
                             id="S0_input",
@@ -223,7 +236,11 @@ Layout_Ground = html.Div(
                         # THETA INPUT
                         html.H6(
                             ["Angle of incidence, θ°"],
-                            style={"color": "Teal", "font-weight": "bold", "font-size":14},
+                            style={
+                                "color": "Teal",
+                                "font-weight": "bold",
+                                "font-size": 14,
+                            },
                         ),
                         dcc.Input(
                             id="angle_input",
@@ -239,7 +256,11 @@ Layout_Ground = html.Div(
                         # fMHZ INPUT
                         html.H6(
                             "Frequency (MHz)",
-                            style={"color": "Teal", "font-weight": "bold", "font-size":14},
+                            style={
+                                "color": "Teal",
+                                "font-weight": "bold",
+                                "font-size": 14,
+                            },
                         ),
                         dcc.Input(
                             id="fMHz_input",
@@ -255,7 +276,11 @@ Layout_Ground = html.Div(
                         # POLARISATION MODE INPUT
                         html.H6(
                             "Polarisation mode",
-                            style={"color": "Teal", "font-weight": "bold", "font-size":14},
+                            style={
+                                "color": "Teal",
+                                "font-weight": "bold",
+                                "font-size": 14,
+                            },
                         ),
                         dcc.RadioItems(
                             id="mode_radioitem",
@@ -270,7 +295,11 @@ Layout_Ground = html.Div(
                         # SPATIAL AVERAGING METHOD INPUT
                         html.H6(
                             "Spatial Averaging Method",
-                            style={"color": "Teal", "font-weight": "bold", "font-size":14},
+                            style={
+                                "color": "Teal",
+                                "font-weight": "bold",
+                                "font-size": 14,
+                            },
                         ),
                         dcc.Dropdown(
                             id="sa_method_dpdn",
@@ -301,7 +330,11 @@ Layout_Ground = html.Div(
                         # SPATIAL AVERAGING LENGTH, L, INPUT
                         html.H6(
                             "Spatial averaging length",
-                            style={"color": "Teal", "font-weight": "bold", "font-size":14},
+                            style={
+                                "color": "Teal",
+                                "font-weight": "bold",
+                                "font-size": 14,
+                            },
                         ),
                         dcc.Input(
                             id="L_input",
@@ -318,7 +351,11 @@ Layout_Ground = html.Div(
                         # SPATIAL AVERAGING NO. OF POINTS, Nsap, INPUT
                         html.H6(
                             "No. of spatial averaging points",
-                            style={"color": "Teal", "font-weight": "bold", "font-size":14},
+                            style={
+                                "color": "Teal",
+                                "font-weight": "bold",
+                                "font-size": 14,
+                            },
                         ),
                         dcc.Input(
                             id="Nsap_input",
@@ -330,15 +367,6 @@ Layout_Ground = html.Div(
                             step=1,
                             style={"width": "40%"},
                         ),
-                        html.Br(),
-                        html.Br(),
-                        # # RUN BUTTON
-                        # dbc.Button(
-                        #     "Run",
-                        #     id="run_button",
-                        #     style={"width": "30%"},
-                        #     n_clicks=0,
-                        # ),
                     ],
                     width={"size": 4},
                 ),
@@ -352,30 +380,31 @@ Layout_Ground = html.Div(
                                 dbc.Col(
                                     # S PLOT
                                     dcc.Graph(
-                                            id="output_graph_TM",
-                                            figure={},
-                                            # style={"box-shadow": "6px 6px 6px lightgrey"},
+                                        id="output_graph_TM",
+                                        figure={},
+                                        # style={"box-shadow": "6px 6px 6px lightgrey"},
                                     ),
                                     width={"size": 6},
                                 ),
                                 # 2nd COLUMN OF 1st ROW
                                 dbc.Col(
-                                      # CODE for dynamic pictograph 
-                                      # of incident S0 ray showing theta
+                                    # CODE for dynamic pictograph
+                                    # of incident S0 ray showing theta
                                 ),
                             ],
                         ),
                     ],
-                )
+                ),
             ]
         )
     ]
 )
 
-style_H4 = {"color": "Teal",
-            "font-weight": "bold",
-            "textAlign": "center",
-            }
+style_H4 = {
+    "color": "Teal",
+    "font-weight": "bold",
+    "textAlign": "center",
+}
 layout = dbc.Container(
     [
         html.H4(
