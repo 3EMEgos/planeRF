@@ -184,7 +184,7 @@ Layout_Ground = html.Div(
                             },
                         ),
                         html.Br(),
-                        # GROUND TYPE INPUT
+                        # GROUND TYPE INPUTS
                         html.H6(
                             "Ground Type",
                             style={
