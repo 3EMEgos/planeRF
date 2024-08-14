@@ -4,222 +4,158 @@ from dash.dependencies import Input, Output, State
 import dash_bootstrap_components as dbc
 import numpy as np
 import plotly.graph_objs as go
-
-from planeRF import compute_power_density, sagnd, compute_ns
-
-
-@callback(
-    Output(component_id="output-graphTM", component_property="figure"),
-    [
-        Input("run-button", "n_clicks"),
-        Input("Ground_raditem", "value"),
-        Input("sa_method_dpdn", "value"),
-    ],
-    [
-        State("s-input", "value"),
-        State("angle-input", "value"),
-        State("frequency-input", "value"),
-    ],
-)
-def update_graph_TM(
-    n_clicks, ground_type, sa_method_dpdn, S0, angle, frequency
-):
-    if (
-        n_clicks > 0
-        and S0 is not None
-        and angle is not None
-        and frequency is not None
-    ):
-        L = 2.0
-        ground_type = str(ground_type)
-        sa_method_dpdn = str(sa_method_dpdn)
-        S0 = float(S0)
-        angle = float(angle)
-        frequency = float(frequency)
-        Ns = compute_ns(frequency, L)
-        Nt = Ns + 1
-        z = np.linspace(-2, 0, Nt)  # z-direction coordinates
-        result = compute_power_density(
-            ground_type, S0, frequency, angle, "TM", z
-        )
-        Zs, Ws = sagnd(sa_method_dpdn, Ns, L)
-        Ssa_h = np.dot(result[0][0:Nt:1], Ws) / L
-        Ssa_e = np.dot(result[1][0:Nt:1], Ws) / L
-
-        if result is not None:
-            trace1 = go.Scatter(
-                # y=np.linspace(-2, 0, Nt),
-                # x=result[0],
-                y=np.linspace(0, 2, Nt),
-                x=result[0][Nt:0:-1],
-                mode="lines",
-                line=dict(color="pink", width=1),
-                name="S<sub>H</sub>",
-            )
-            trace2 = go.Scatter(
-                # y=np.linspace(-2, 0, Nt),
-                # x=result[1],
-                y=np.linspace(0, 2, Nt),
-                x=result[1][Nt:0:-1],
-                mode="lines",
-                line=dict(color="cyan", width=1),
-                name="S<sub>E</sub>",
-            )
-            trace3 = go.Scatter(
-                # y=np.linspace(-2, 0, Nt),
-                y=np.linspace(0, 2, Nt),
-                x=S0 * np.ones(len(z)),
-                line=dict(color="black", width=2, dash="dash"),
-                name=f"S<sub>0</sub>: {round(S0,1):g}",
-            )
-            trace4 = go.Scatter(
-                # y=np.linspace(-2, 0, Ns),
-                y=np.linspace(0, 2, Nt),
-                x=Ssa_h * np.ones(Nt),
-                line=dict(color="red", width=2, dash="dash"),
-                name=f"S<sub>saH</sub>: {round(Ssa_h,1):g}",
-            )
-            trace5 = go.Scatter(
-                # y=np.linspace(-2, 0, Ns),
-                y=np.linspace(0, 2, Nt),
-                x=Ssa_e * np.ones(Nt),
-                line=dict(color="blue", width=2, dash="dash"),
-                name=f"S<sub>saE</sub>: {round(Ssa_e,1):g}",
-            )
-
-            layout = go.Layout(
-                title=f"TM mode, {frequency:g} MHz, theta = {angle:g}°",
-                xaxis={
-                    "showgrid": False,
-                    "gridcolor": "black",
-                    "title": "Power Flux Density (W/m<sup>2</sup>)",
-                },
-                yaxis={
-                    "showgrid": False,
-                    "gridcolor": "black",
-                    "title": "z(m)",
-                },
-                plot_bgcolor="#fff",
-                width=360,
-                height=900,
-            )
-
-            # fig = go.Figure(data=[trace], layout=layout)
-            fig = go.Figure(layout=layout)
-            fig.add_trace(trace1)
-            fig.add_trace(trace2)
-            fig.add_trace(trace3)
-            fig.add_trace(trace4)
-            fig.add_trace(trace5)
-            return fig
-    elif S0 is None or angle is None or frequency is None:
-        raise dash.exceptions.PreventUpdate
+from planeRF import compute_S_params, compute_power_density, sagnd, compute_ns
 
 
 @callback(
-    Output(component_id="output-graphTE", component_property="figure"),
+    Output(component_id="output_graph_TM", component_property="figure"),
     [
-        Input("run-button", "n_clicks"),
-        Input("Ground_raditem", "value"),
+        Input("ground_radioitem", "value"),
+        Input("S0_input", "value"),
+        Input("fMHz_input", "value"),
+        Input("mode_radioitem", "value"),
         Input("sa_method_dpdn", "value"),
-    ],
-    [
-        State("s-input", "value"),
-        State("angle-input", "value"),
-        State("frequency-input", "value"),
+        Input("L_input", "value"),
+        Input("Nsap_input", "value"),
+        Input("angle_input", "value"),
     ],
 )
-def update_graph_TE(
-    n_clicks, ground_type, sa_method_dpdn, S0, angle, frequency
-):
+def update_graph(gnd, S0, fMHz, pol, sa_method, L, Nsap, theta):
     if (
-        n_clicks > 0
+        gnd is not None
         and S0 is not None
-        and angle is not None
-        and frequency is not None
+        and fMHz is not None
+        and pol is not None
+        and sa_method is not None
+        and L is not None
+        and Nsap is not None
+        and theta is not None
     ):
-        L = 2.0
-        ground_type = str(ground_type)
-        sa_method_dpdn = str(sa_method_dpdn)
+        # Calculate S computational parameters
+        gnd = str(gnd)
+        sa_method = str(sa_method)
         S0 = float(S0)
-        angle = float(angle)
-        frequency = float(frequency)
-        Ns = compute_ns(frequency, L)
-        Nt = Ns + 1
-        z = np.linspace(-2, 0, Nt)  # z-direction coordinates
-        result = compute_power_density(
-            ground_type, S0, frequency, angle, "TE", z
-        )
-        Zs, Ws = sagnd(sa_method_dpdn, Ns, L)
-        Ssa_h = np.dot(result[0][0:Nt:1], Ws) / L
-        Ssa_e = np.dot(result[1][0:Nt:1], Ws) / L
+        theta = float(theta)
+        fMHz = float(fMHz)
+        S_params, (epsr, sigma) = compute_S_params(gnd, fMHz, theta, pol)
 
-        if result is not None:
-            trace1 = go.Scatter(
-                # y=np.linspace(-2, 0, Nt),
-                # x=result[0],
-                y=np.linspace(0, 2, Nt),
-                x=result[0][Nt:0:-1],
+        # Calculate S plot
+        Ns = compute_ns(fMHz, L)  # No. of S sampling points
+        z = np.linspace(0, -2, Ns)  # z coords for sampling points
+        z[0] = -1e-12  # make the first z value slightly above zero
+        result = compute_power_density(z, S0, *S_params)
+        SH, SE = result
+
+        # Calculate spatial averaging points and averages
+        # Note that compute_power_density can change Nsap if it is not valid for the spatial averaging method
+        Zsap, Wsap, Nsap = sagnd(sa_method, Nsap, L)
+        SHsap, SEsap = compute_power_density(Zsap, S0, *S_params)
+        SHsa = np.dot(SHsap, Wsap)
+        SEsa = np.dot(SEsap, Wsap)
+
+        # Calculate z & W for ACCURATE ESTIMATE of spatial averaging points
+        Nsap_accurate = 200  # Set this to a very high number for good accuracy
+        sa_method_accurate = "GQR"  # Use GQR for go0d accuracy
+        Zsap_acc, Wsap_acc, Nsap_acc = sagnd(sa_method_accurate, Nsap_accurate, L)
+        SHsap_acc, SEsap_acc = compute_power_density(Zsap_acc, S0, *S_params)
+        SHsa_accurate = np.dot(SHsap_acc, Wsap_acc)
+        SEsa_accurate = np.dot(SEsap_acc, Wsap_acc)
+
+        # Calculate percentages of spatial average estimates to accurate estimates
+        SHsa_pc = (SHsa / SHsa_accurate) * 100.0
+        SEsa_pc = (SEsa / SEsa_accurate) * 100.0
+
+        # Create the plot traces
+        Y = np.linspace(0, 2, Ns)  # make z levels positive for plotting
+        if (result) is not None:
+            trace1_SE = go.Scatter(
+                y=Y,
+                x=SE,
                 mode="lines",
-                line=dict(color="pink", width=1),
-                name="S<sub>H</sub>",
-            )
-            trace2 = go.Scatter(
-                # y=np.linspace(-2, 0, Nt),
-                # x=result[1],
-                y=np.linspace(0, 2, Nt),
-                x=result[1][Nt:0:-1],
-                mode="lines",
-                line=dict(color="cyan", width=1),
+                line=dict(color="#EE6677", width=1.5),  # red EE6677
                 name="S<sub>E</sub>",
             )
-            trace3 = go.Scatter(
-                # y=np.linspace(-2, 0, Nt),
-                y=np.linspace(0, 2, Nt),
-                x=S0 * np.ones(len(z)),
-                line=dict(color="black", width=2, dash="dash"),
-                name=f"S<sub>0</sub>: {round(S0,1):g}",
+            trace2_SH = go.Scatter(
+                y=Y,
+                x=SH,
+                mode="lines",
+                line=dict(color="#66CCEE", width=1.5),  # cyan 66CCEE
+                name="S<sub>H</sub>",
             )
-            trace4 = go.Scatter(
-                # y=np.linspace(-2, 0, Ns),
-                y=np.linspace(0, 2, Nt),
-                x=Ssa_h * np.ones(Nt),
-                line=dict(color="red", width=2, dash="dash"),
-                name=f"S<sub>saH</sub>: {round(Ssa_h,1):g}",
+            trace3_S0 = go.Scatter(
+                y=[0, 2],
+                x=[S0, S0],
+                mode="lines",
+                line=dict(color="#228833", width=1.5),  # green 228833
+                name=f"S<sub>0</sub> = {round(S0,2):g}",
             )
-            trace5 = go.Scatter(
-                # y=np.linspace(-2, 0, Ns),
-                y=np.linspace(0, 2, Nt),
-                x=Ssa_e * np.ones(Nt),
-                line=dict(color="blue", width=2, dash="dash"),
-                name=f"S<sub>saE</sub>: {round(Ssa_e,1):g}",
+            trace4_SEsa = go.Scatter(
+                y=[0, 2],
+                x=[SEsa, SEsa],
+                mode="lines",
+                line=dict(color="#AA3377", width=1.5, dash="dashdot"),  # purple AA3377
+                name=f"S<sub>E sa</sub> = {round(SEsa,2):g}  ({SEsa_pc:0.1f}%)",
+            )
+            trace5_SHsa = go.Scatter(
+                y=[0, 2],
+                x=[SHsa, SHsa],
+                mode="lines",
+                line=dict(color="#4477AA", width=1.5, dash="dash"),  # blue 4477AA
+                name=f"S<sub>H sa</sub> = {round(SHsa,2):g}  ({SHsa_pc:0.1f}%)",
+            )
+            trace5_SEsap = go.Scatter(
+                y=-Zsap,
+                x=SEsap,
+                mode="markers",
+                marker=dict(color="#AA3377", size=8),  # purple AA3377
+                name="S<sub>E</sub> spatial averaging points",
+            )
+            trace6_SHsap = go.Scatter(
+                y=-Zsap,
+                x=SHsap,
+                mode="markers",
+                marker=dict(color="#4477AA", size=8),  # blue 4477AA
+                name="S<sub>H</sub> spatial averaging points",
             )
 
+            # Generate plot title
+            sigma[1] = round(sigma[1], 10)  # round very small numbers to zero
+            t1 = f"<b>{gnd}</b> "
+            t2 = f'<span style="font-size:12pt">(ε<sub>r</sub>={epsr[1]:0.2g}, σ={sigma[1]:0.3g} S/m)</span>'
+            t3 = f"<b>{fMHz:g} MHz,  θ = {theta:g}°,  {pol} mode</b>"
+            t4 = f'<span style="font-size:12pt">{sa_method} averaging for {Nsap} points over {L}m</span>'
+            plot_title = t1 + t2 + "<br>" + t3 + "<br>" + t4
+
             layout = go.Layout(
-                title=f"TE mode, {frequency:g} MHz, theta = {angle:g}°",
+                title=plot_title,
+                margin_t=150,  # height for plot title
+                title_x=0.5,
                 xaxis={
-                    "showgrid": False,
-                    "gridcolor": "black",
-                    "title": "Power Flux Density (W/m<sup>2</sup>)",
+                    "title": "S (W/m²)",
+                    "range": [0, 4.1 * S0],
                 },
                 yaxis={
-                    "showgrid": False,
-                    "gridcolor": "black",
-                    "title": "z(m)",
+                    "title": "height above ground (m)",
+                    "range": [0, 2.02],
                 },
-                plot_bgcolor="#fff",
-                width=360,
-                height=900,
+                width=350,
+                height=800,
+                legend={"yanchor": "top", "y": -0.1, "xanchor": "center", "x": 0.5},
             )
-            # fig = go.Figure(data=[trace], layout=layout)
+
+            # Add plot traces to the figure
             fig = go.Figure(layout=layout)
-            fig.add_trace(trace1)
-            fig.add_trace(trace2)
-            fig.add_trace(trace3)
-            fig.add_trace(trace4)
-            fig.add_trace(trace5)
+            fig.add_trace(trace1_SE)
+            fig.add_trace(trace2_SH)
+            fig.add_trace(trace3_S0)
+            fig.add_trace(trace5_SEsap)
+            fig.add_trace(trace4_SEsa)
+            fig.add_trace(trace6_SHsap)
+            fig.add_trace(trace5_SHsa)
+
             return fig
-    elif S0 is None or angle is None or frequency is None:
+
+    elif S0 is None or theta is None or fMHz is None:
         raise dash.exceptions.PreventUpdate
 
 
@@ -230,102 +166,153 @@ dash.register_page(
     name="Ground Reflection",
 )
 
-# dash.page_container.style = {
-#     "margin-left": "18rem",
-#     "margin-right": "2rem",
-#     "padding": "1rem 1rem",
-# }
-
 Layout_Ground = html.Div(
     [
         dbc.Row(
             [
+                # LEFT COLUMN
                 dbc.Col(
                     [
+                        # INPUT PARAMETERS HEADING
                         html.H4(
                             "Input Parameters",
-                            style={"color": "Teal", "font-weight": "bold"},
+                            style={
+                                "color": "Teal",
+                                "font-weight": "bold",
+                                "font-size": 18,
+                                "text-align": "center",
+                            },
                         ),
                         html.Br(),
+                        # GROUND TYPE INPUTS
                         html.H6(
                             "Ground Type",
-                            style={"color": "Teal", "font-weight": "bold"},
+                            style={
+                                "color": "Teal",
+                                "font-weight": "bold",
+                                "font-size": 14,
+                            },
                         ),
                         dcc.RadioItems(
-                            id="Ground_raditem",
+                            id="ground_radioitem",
                             options=[
-                                {"label": "PEC Ground", "value": "PEC Ground"},
-                                {"label": "Wet Soil", "value": "Wet Soil"},
-                                {"label": "Dry Soil", "value": "Dry Soil"},
+                                {"label": " No ground (Air)", "value": "Air"},
+                                {"label": " Metal (PEC) ground", "value": "PEC Ground"},
+                                {"label": " Wet soil", "value": "Wet Soil"},
+                                {
+                                    "label": " Medium dry ground",
+                                    "value": "Medium Dry Ground",
+                                },
+                                {"label": " Dry soil", "value": "Dry Soil"},
+                                {"label": " Concrete", "value": "Concrete"},
                             ],
                             value="PEC Ground",
                             inline=False,
                         ),
                         html.Br(),
+                        # S0 INPUT
                         html.H6(
                             [
-                                "Incident Power Flux Density (W/m",
-                                html.Sup("2"),
-                                ")",
+                                "Incident power density, S₀ (W/m²)",
                             ],
-                            style={"color": "Teal", "font-weight": "bold"},
+                            style={
+                                "color": "Teal",
+                                "font-weight": "bold",
+                                "font-size": 14,
+                            },
                         ),
                         dcc.Input(
-                            id="s-input",
+                            id="S0_input",
                             type="number",
                             placeholder="",
-                            min=0.1,
+                            min=0,
                             max=1000.0,
+                            value=100,
+                            # step=10,
                             style={"width": "40%"},
                         ),
                         html.Br(),
                         html.Br(),
+                        # THETA INPUT
                         html.H6(
-                            ["Angle of Incident (", html.Sup("o"), ")"],
-                            style={"color": "Teal", "font-weight": "bold"},
+                            ["Angle of incidence, θ°"],
+                            style={
+                                "color": "Teal",
+                                "font-weight": "bold",
+                                "font-size": 14,
+                            },
                         ),
                         dcc.Input(
-                            id="angle-input",
+                            id="angle_input",
                             type="number",
                             placeholder="",
                             min=0.0,
                             max=90.0,  # limit the angle range from 0 to 90degs
+                            value=30,
                             style={"width": "40%"},
                         ),
                         html.Br(),
                         html.Br(),
+                        # fMHZ INPUT
                         html.H6(
                             "Frequency (MHz)",
-                            style={"color": "Teal", "font-weight": "bold"},
+                            style={
+                                "color": "Teal",
+                                "font-weight": "bold",
+                                "font-size": 14,
+                            },
                         ),
                         dcc.Input(
-                            id="frequency-input",
+                            id="fMHz_input",
                             type="number",
                             placeholder="",
-                            min=1,
+                            min=30,
                             max=6000,  # limit the freq range from 30MHz to 60GHz
+                            value=900,
                             style={"width": "40%"},
                         ),
                         html.Br(),
                         html.Br(),
+                        # POLARISATION MODE INPUT
                         html.H6(
-                            "Spatial Average Methods",
-                            style={"color": "Teal", "font-weight": "bold"},
+                            "Polarisation mode",
+                            style={
+                                "color": "Teal",
+                                "font-weight": "bold",
+                                "font-size": 14,
+                            },
+                        ),
+                        dcc.RadioItems(
+                            id="mode_radioitem",
+                            options=[
+                                {"label": " TM", "value": "TM"},
+                                {"label": " TE", "value": "TE"},
+                            ],
+                            value="TM",
+                            inline=False,
+                        ),
+                        html.Br(),
+                        # SPATIAL AVERAGING METHOD INPUT
+                        html.H6(
+                            "Spatial Averaging Method",
+                            style={
+                                "color": "Teal",
+                                "font-weight": "bold",
+                                "font-size": 14,
+                            },
                         ),
                         dcc.Dropdown(
                             id="sa_method_dpdn",
                             options=[
-                                {
-                                    "label": "Simple Spatial Averaging",
-                                    "value": "Simple",
-                                },
-                                {
-                                    "label": "Simpson's 1/3 Rule",
-                                    "value": "S13",
-                                },
+                                {"label": "Point spatial", "value": "PS"},
+                                {"label": "Simple Averaging", "value": "Simple"},
+                                {"label": "Riemann Sum", "value": "RS"},
+                                {"label": "Simpson's ⅓ Rule", "value": "S13"},
+                                {"label": "Simpson's ⅜ Rule", "value": "S38"},
+                                {"label": "Gaussian Quadrature Rule", "value": "GQR"},
                             ],
                             optionHeight=35,  # height/space between dropdown options
-                            value="S13",  # dropdown value selected automatically when page loads
+                            value="Simple",  # dropdown value selected automatically when page loads
                             disabled=False,  # disable dropdown value selection
                             multi=False,  # allow multiple dropdown values to be selected
                             searchable=True,  # allow user-searching of dropdown values
@@ -333,55 +320,100 @@ Layout_Ground = html.Div(
                             placeholder="Please select...",  # gray, default text shown when no option is selected
                             clearable=False,  # allow user to removes the selected value
                             style={
-                                "width": "70%"
+                                "width": "90%"
                             },  # use dictionary to define CSS styles of your dropdown
                             # className='select_box',           #activate separate CSS document in assets folder
                             # persistence=True,                 #remembers dropdown value. Used with persistence_type
                             # persistence_type='memory'         #remembers dropdown value selected until...
                         ),
                         html.Br(),
+                        # SPATIAL AVERAGING LENGTH, L, INPUT
+                        html.H6(
+                            "Spatial averaging length",
+                            style={
+                                "color": "Teal",
+                                "font-weight": "bold",
+                                "font-size": 14,
+                            },
+                        ),
+                        dcc.Input(
+                            id="L_input",
+                            type="number",
+                            placeholder="",
+                            min=0.3,
+                            max=2,  # limit the freq range from 30MHz to 60GHz
+                            value=1.6,
+                            step=0.1,
+                            style={"width": "40%"},
+                        ),
                         html.Br(),
                         html.Br(),
-                        html.Br(),
-                        dbc.Button(
-                            "Run",
-                            id="run-button",
-                            style={"width": "30%"},
-                            n_clicks=0,
+                        # SPATIAL AVERAGING NO. OF POINTS, Nsap, INPUT
+                        html.H6(
+                            "No. of spatial averaging points",
+                            style={
+                                "color": "Teal",
+                                "font-weight": "bold",
+                                "font-size": 14,
+                            },
+                        ),
+                        dcc.Input(
+                            id="Nsap_input",
+                            type="number",
+                            placeholder="",
+                            min=1,
+                            max=300,  # limit the freq range from 30MHz to 60GHz
+                            value=7,
+                            step=1,
+                            style={"width": "40%"},
                         ),
                     ],
                     width={"size": 4},
                 ),
+                # RIGHT COLUMN
                 dbc.Col(
-                    dcc.Graph(
-                        id="output-graphTM",
-                        figure={},
-                        style={"box-shadow": "6px 6px 6px lightgrey"},
-                    ),
-                    width={"size": 4},
-                ),
-                dbc.Col(
-                    dcc.Graph(
-                        id="output-graphTE",
-                        figure={},
-                        style={"box-shadow": "6px 6px 6px lightgrey"},
-                    ),
-                    width={"size": 4},
+                    [
+                        # 1st ROW
+                        dbc.Row(
+                            [
+                                # 1st COLUMN OF 1st ROW
+                                dbc.Col(
+                                    # S PLOT
+                                    dcc.Graph(
+                                        id="output_graph_TM",
+                                        figure={},
+                                        # style={"box-shadow": "6px 6px 6px lightgrey"},
+                                    ),
+                                    width={"size": 6},
+                                ),
+                                # 2nd COLUMN OF 1st ROW
+                                dbc.Col(
+                                    # CODE for dynamic pictograph
+                                    # of incident S0 ray showing theta
+                                ),
+                            ],
+                        ),
+                    ],
                 ),
             ]
         )
     ]
 )
 
+style_H4 = {
+    "color": "Teal",
+    "font-weight": "bold",
+    "textAlign": "center",
+}
 layout = dbc.Container(
     [
         html.H4(
-            "Plane Wave Oblique Incident onto PEC or Real Ground: TE and TM",
-            style={
-                "color": "Teal",
-                "font-weight": "bold",
-                "textAlign": "center",
-            },
+            "Power flux density height profile for plane wave",
+            style=style_H4,
+        ),
+        html.H4(
+            "obliquely incident on PEC or real ground",
+            style=style_H4,
         ),
         html.Hr(),
         Layout_Ground,
