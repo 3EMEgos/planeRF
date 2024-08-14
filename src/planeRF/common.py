@@ -136,24 +136,33 @@ def ground_dielectrics(ground_type: str, fMHz: float) -> Tuple[List[float]]:
             sigma = [0, sigma_i]
         case "Medium Dry Ground":
             # interpolation data from Fig.1 of ITU-R P.527-3 report (use for unit testing)
-            fMHz_mds = [1, 10, 30, 60, 100, 300, 600, 1000, 3000, 6000]
-            er_mds = [15.2, 15.2, 15.2, 15.2, 15.2, 15.2, 15.2, 15.2, 15.2, 14.3]
-            sigma_mds = [
-                0.001,
-                0.001,
-                0.001,
-                0.0013,
-                0.0018,
-                0.0063,
-                0.0168,
-                0.037,
-                0.245,
-                0.79,
-            ]
-            fn_er_mds = interp1d(fMHz_mds, er_mds, kind="quadratic")
-            fn_sigma_mds = interp1d(fMHz_mds, sigma_mds, kind="quadratic")
-            epsr = [1, float(fn_er_mds(fMHz))]
-            sigma = [0, float(fn_sigma_mds(fMHz))]
+            fMHz_mdg = np.array([1, 10, 30, 60, 100, 300, 600, 1000, 3000, 6000])
+            er_mdg = np.array(
+                [15.2, 15.2, 15.2, 15.2, 15.2, 15.2, 15.2, 15.2, 15.2, 14.3]
+            )
+            sigma_mdg = np.array(
+                [
+                    0.001,
+                    0.001,
+                    0.001,
+                    0.0013,
+                    0.0018,
+                    0.0063,
+                    0.0168,
+                    0.037,
+                    0.245,
+                    0.79,
+                ]
+            )
+            # perform log linear interpolation
+            fMHz_log10 = np.log10(fMHz)
+            fMHz_mdg_log10 = np.log10(fMHz_mdg)
+            er_mdg_log10 = np.log10(er_mdg)
+            sigma_mdg_log10 = np.log10(sigma_mdg)
+            fn_er_mds = interp1d(fMHz_mdg_log10, er_mdg_log10, kind="quadratic")
+            fn_sigma_mds = interp1d(fMHz_mdg_log10, sigma_mdg_log10, kind="quadratic")
+            epsr = [1, 10.0 ** float(fn_er_mds(fMHz_log10))]
+            sigma = [0, 10.0 ** float(fn_sigma_mds(fMHz_log10))]
 
     return epsr, sigma
 
