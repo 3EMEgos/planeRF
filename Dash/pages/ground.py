@@ -123,7 +123,10 @@ def update_graph(gnd, S0, fMHz, pol, sa_method, L, Nsap, theta):
             t1 = f"<b>{gnd}</b> "
             t2 = f'<span style="font-size:12pt">(ε<sub>r</sub>={epsr[1]:0.2g}, σ={sigma[1]:0.3g} S/m)</span>'
             t3 = f"<b>{fMHz:g} MHz,  θ = {theta:g}°,  {pol} mode</b>"
-            t4 = f'<span style="font-size:12pt">{sa_method} averaging for {Nsap} points over {L}m</span>'
+            if sa_method == "PS":
+                t4 = f'<span style="font-size:12pt">Point spatial estimate at {L}m</span>'
+            else:
+                t4 = f'<span style="font-size:12pt">{sa_method} averaging for {Nsap} points over {L}m</span>'
             plot_title = t1 + t2 + "<br>" + t3 + "<br>" + t4
 
             layout = go.Layout(
@@ -320,7 +323,8 @@ Layout_Ground = html.Div(
                             placeholder="Please select...",  # gray, default text shown when no option is selected
                             clearable=False,  # allow user to removes the selected value
                             style={
-                                "width": "90%"
+                                "width": "95%",
+                                "font-size": 12,
                             },  # use dictionary to define CSS styles of your dropdown
                             # className='select_box',           #activate separate CSS document in assets folder
                             # persistence=True,                 #remembers dropdown value. Used with persistence_type
