@@ -458,7 +458,7 @@ def compute_S_params(
     Z0 = np.sqrt(mu0 / eps0)  # free-space impedance
     zi = [
         0,
-        np.Infinity,
+        np.inf,
     ]  # z levels for material interfaces (air/ground, ground/infinity)
     mur = [1, 1]  # relative permeability of layers 1 and 2
     w = 2.0 * np.pi * fMHz * 1e6  # angular frequency (rad/sec)

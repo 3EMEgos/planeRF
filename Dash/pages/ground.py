@@ -4,7 +4,7 @@ from dash.dependencies import Input, Output, State
 import dash_bootstrap_components as dbc
 import numpy as np
 import plotly.graph_objs as go
-from planeRF import compute_S_params, compute_power_density, sagnd, compute_ns
+from .common import compute_S_params, compute_power_density, sagnd, compute_ns
 
 
 @callback(
