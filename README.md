@@ -49,11 +49,10 @@ The main features of the planeRF web app include:
     + Gaussian Legendre quadrature
 + Plot showing:
   + $S_0$, incident plane wave level
-  + $S_E$, combined power density of incident/reflected field for E
-  + $S_H$, combined power density of incident/reflected field for H
+  + $S_E$, combined power density level of incident/reflected field for E
+  + $S_H$, combined power density level of incident/reflected field for H
   + $S_{sa_E}$, spatial average level for $S_E$ values
   + $S_{sa_H}$, spatial average level for $S_H$ values
-  + Maximum spatial average value $S_{sa}$ of $S_{sa_E}$ & $S_{sa_H}$
   + Spatial averaging points
   + Plot title dsiplaying the paramaters of the incident plane wave, the ground and the spatial averaging scheme
   
@@ -65,8 +64,8 @@ The app plot is interactive allowing the user to:
 The percentage values shown in the plot legend for  $S_{sa_E}$ and $S_{sa_H}$ indicate their level relative to a highly accurate estimate of $S_{sa}$ which is the maximum value of $S_{sa_E}$ and $S_{sa_H}$ using 200 averaging points.
 
 An example of the app's reflected fields calculation display is shown below:
-![Example display of planeRF app](assets/Example_app_display.png)
 
+![Example display of planeRF app](assets/Example_app_display.png)
 
 ## Getting started
 
@@ -97,21 +96,8 @@ ipython kernel install --user --name=planeRF
 ### Use
 
 Run the web app by simply running the `app.py` file inside the `Dash` directory.
-
-If instead you wish to use the code locally without the web app, you can simply do the following:
-```python
-from planeRF import compute_power_density
-
-
-# set up the input values
-ground_type = 'PEC Ground'  # or 'Real ground'
-E0 = ...    # replace with the desired peak E-field amplitude in V/m
-f = ...     # replace with your desired frequency in Hz
-theta = 45  # replace with your desired angle in deg
-pol = 'TM'  # define the polarization mode
-
-# perform the computation
-SH, SE, S0 = compute_power_density(f, theta, pol)
+```
+python app.py
 ```
 
 ### Run the tests
