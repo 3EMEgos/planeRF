@@ -1,9 +1,21 @@
 # planeRF
-Python code repository for an interactive web app that calculates and plots $S_E$ and $S_H$ over a height of 2 m of a RF plane wave that is incident at various angles on a PEC or real ground.
+This is a python code repository for an interactive Dash web app that calculates and plots the power flux density (S) height profiles for a radiofrequency (RF) elecromagnetic (EM) plane wave that is obliquely incident to a reflecting ground, as shown for example below:
 
-The `Dash` directory contains all the code related to the web app, while the main codebase is located within the `src/planeRF` directory.
+
+
+The calculations of the app are based on exact analytical solutions for the complex electric (E) and magnetic (H) fields as described in the book "Waves and Fields in Inhomogenous Media" by Weng Cho Chew.
+
+The app displays the equivalent plane wave power density levels based on E and H where:
++ $S_E=|E|²/377$
++ $S_H=377|H|²$
+
+The app also displays
+
+The `Dash` directory contains all the code related to the Dash web app, while the main codebase is located within the `src/planeRF` directory.
 
 The features of the planeRF web app include:
++ Interactive widgets for setting the inputs for the reflected wave calculations:
+  +    
 + Two display pages:
   + Introduction page
   + Calculation/plots page
