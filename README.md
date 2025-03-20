@@ -1,31 +1,54 @@
 # planeRF
-This is a python code repository for an interactive Dash web app that calculates and plots the power flux density (S) height profiles for a radiofrequency (RF) elecromagnetic (EM) plane wave that is obliquely incident to a reflecting ground, as shown for example below:
 
+## Introduction
+Whenever a radiofrequency (RF) electromagnetic (EM) wave is incident on a ground, part of it may be _reflected_ and part may be _transmitted_ into the ground depending on the dielectric properties (permittivty $\epsilon$ and conductivity $\sigma$) of the ground and the characteristics of the RF wave (frequency, angle of incidence ($\theta$) and polarisation). 
 
+Above ground, the cumulative contributions of the incident and reflected RF waves generate oscillating interference patterns in both the electric (E) and magnetic (H) components of the combined incident/reflected field. This `planeRF` app explores this phenomenon for a plane wave obliquely incident on an infinite flat ground.
 
-The calculations of the app are based on exact analytical solutions for the complex electric (E) and magnetic (H) fields as described in the book "Waves and Fields in Inhomogenous Media" by Weng Cho Chew.
-
-The app displays the equivalent plane wave power density levels based on E and H where:
+In particular, the app displays the height profiles for the equivalent plane wave power density (S) calculated from the E and H fields, as indicated below: 
 + $S_E=|E|²/377$
 + $S_H=377|H|²$
 
-The app also displays
+The RF calculations of the app are based on exact analytical solutions for the complex electric (E) and magnetic (H) fields as described in the book "_Waves and Fields in Inhomogenous Media_" by Weng Cho Chew (1995).
 
-The `Dash` directory contains all the code related to the Dash web app, while the main codebase is located within the `src/planeRF` directory.
+The figure below displays how the angle of incidence ($\theta$) and polarisation (Transverse Magnetic or Transverse Electric) of the incident plane wave are defined:
 
-The features of the planeRF web app include:
-+ Interactive widgets for setting the inputs for the reflected wave calculations:
-  +    
-+ Two display pages:
-  + Introduction page
-  + Calculation/plots page
-+ A side bar with subheadings for navigating to these pages  
-+ Calculate both $S_E=|E|²/377$ and $S_H=377|H|²$
-+ Calculate for both transverse magnetic (TM) and transverse electric (TE) modes of the incident plane wave
-![TM & TE mode](https://github.com/3EMEgos/planeRF/blob/main/assets/TM-TE-mode.png)
-+ Allow user input for:
-  + Power density, $S_0$, of the incident plane wave (validated text input box in W/m²)
-  + Frequency in MHz (slider input and text box ranging from 1 to 6000 MHz)
+![TM & TE mode](assets/TM-TE-mode.png)
+
+The app also explores various different **spatial averaging schemes** for assessing $S_E$ and $S_H$ for compliance with safety limits for human exposure to RF fields. For more information on this topic see: [spatial averaging scheme](https://2fc.gitbook.io/spatial-avg-wg/methodology/numerical-approaches-for-spatial-averaging)
+
+The app has been coded in python and may therefore be installed on a Windows, Mac or Linux computer. The app utilises the Plotly Dash library to generate an interactive display in a web browser. The `Dash` directory in this repository contains all the code related to the Dash web app, while the main codebase is located within the `src/planeRF` directory.
+
+The main features of the planeRF web app include:
++ Widgets for setting the inputs for the reflected wave calculations:
+  + Power density, $S_0$, of the incident plane wave (W/m²)
+  + Plane wave frequency ranging from 1 to 6000 MHz
+  + Angle of incidence θ (degrees) of plane wave
+  + Polarisation of plane wave:
+    + Transverse Magnetic (TM)
+    + Transverse Electric (TE)
+  + Ground type:
+    + Air, i.e. no ground
+    + Perfect electric conductor (PEC) for simulating a metal ground
+    + Wet soil
+    + Medium dry soil
+    + Dry soil
+    + Concrete
++ Widgets for setting the spatial averaging scheme:
+  + Number of spatial averaging points
+  + Spatial averaging height
+  + Selection of [spatial averaging scheme](https://2fc.gitbook.io/spatial-avg-wg/methodology/numerical-approaches-for-spatial-averaging) (combo box) using:
+    + Simple averaging
+    + Riemman sum
+    + Trapezoidal rule
+    + Simpsons 1/3 rule
+    + Simpsons 3/8 rule
+    + Gaussian Legendre quadrature
+   
+    + 
+  + Dielectric values, $\epsilon_r$ and $\sigma$ (S/m), of real ground (validated text input box)
+
+
   + Spatial averaging length (slider input and text box ranging from 0.1 to 2m in 0.1 increments)
   + Number of spatial averaging points (slider input and text box ranging from 1 to 100 in 1 increments)
   + Selection of [spatial averaging scheme](https://2fc.gitbook.io/spatial-avg-wg/methodology/numerical-approaches-for-spatial-averaging) (combo box) using:
@@ -35,9 +58,15 @@ The features of the planeRF web app include:
     + Simpsons 1/3 rule
     + Simpsons 3/8 rule
     + Gaussian Legendre quadrature 
-  + Selection of PEC or real ground (radio buttons)
-  + Dielectric values, $\epsilon_r$ and $\sigma$ (S/m), of real ground (validated text input box)
-  + Angle of incidence θ for plane wave (slider input and text box ranging from 0° to 90°)
+      
++ Two display pages:
+  + Introduction page
+  + Calculation/plots page
++ A side bar with subheadings for navigating to these pages  
++ Calculate both $S_E=|E|²/377$ and $S_H=377|H|²$
++ Calculate for both transverse magnetic (TM) and transverse electric (TE) modes of the incident plane wave
+![TM & TE mode](assets/TM-TE-mode.png)
++ Allow user input for:
   + Toggle display (checkbox) of:
     + $S_E$
     + $S_H$
@@ -56,6 +85,9 @@ The features of the planeRF web app include:
 + The horizontal plot axis labelled as "S (W/m²)"
 + A plot/diagram showing the model for the TM or TE mode is shown above each plot, with angle of incidence reflecting input value
 + The $S_{E_{sa}}$ and $S_{H_{sa}}$ values are shown below each TM and TE plot
+
+![Example display of planeRF app](assets/Example_app_display.png)
+
 
 ## Getting started
 
