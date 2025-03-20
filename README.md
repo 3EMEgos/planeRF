@@ -93,12 +93,32 @@ pip install ipykernel
 ipython kernel install --user --name=planeRF
 ```
 
-### Use
+### To run the web app
 
-Run the web app by simply running the `app.py` file inside the `Dash` directory.
+Open a conda terminal.
+
+Activate the `planeRF` environment:
+```bash
+conda activate planeRF
 ```
-python app.py
+
+Change directory to the `planeRF` code folder.
+
+Run the `app.py` file inside the `Dash` directory:
+
+For Windows:
+```bash
+python Dash\app.py
 ```
+For Mac and Linux:
+```bash
+python Dash/app.y
+```
+
+Open the Dash app at the http address indicted in the terminal, e.g.:
+ ```bash
+Dash is running on http://127.0.0.1:3000/
+ ```
 
 ### Run the tests
 
