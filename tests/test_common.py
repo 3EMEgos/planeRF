@@ -1,7 +1,10 @@
 import numpy as np
 import pytest
 import pandas as pd
-from planeRF import compute_S_params, compute_power_density
+import sys
+
+sys.path.append("./Dash/pages")  # provide a path to the common.py module
+from common import compute_S_params, compute_power_density
 
 
 def test_compute_power_density_output_type():
