@@ -71,7 +71,9 @@ An example of the app's reflected fields calculation display is shown below:
 
 ### Installation
 
-Clone this repository to your local machine:
+Install a python distribution. Miniconda is recommended.
+
+Clone the planeRF repository to your local machine:
 ```bash
 git clone git@github.com:3EMEgos/planeRF.git
 ```
@@ -79,7 +81,7 @@ Enter the repository:
 ```bash
 cd planeRF
 ```
-Install `planeRF` preferably within a virtual environment, e.g., by using Conda:
+Install `planeRF`, preferably within a virtual environment using conda:
 ```bash
 conda create --name planeRF python=3.12
 conda activate planeRF
@@ -102,7 +104,7 @@ Activate the `planeRF` environment:
 conda activate planeRF
 ```
 
-Change directory to the `planeRF` code folder.
+Change directory to the `planeRF` root folder.
 
 Run the `app.py` file inside the `Dash` directory:
 
